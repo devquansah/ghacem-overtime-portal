@@ -19,37 +19,21 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     <header className="bg-zinc-900 border-b border-zinc-800 text-white sticky top-0 z-50 shadow-md">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-4">
         
-        {/* Brand Logo & Tabs */}
-        <div className="flex items-center gap-6 select-none flex-wrap">
+        {/* Brand Logo & Title */}
+        <div className="flex items-center gap-3 select-none">
           <h1 className="text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500 uppercase">
             OVERTIME PORTAL
+            {activeTab === "supervisor" && (
+              <span className="text-orange-400 text-xs font-bold font-sans tracking-normal normal-case ml-2.5">
+                | Supervisor Portal
+              </span>
+            )}
+            {activeTab === "hr_accounts" && (
+              <span className="text-indigo-400 text-xs font-bold font-sans tracking-normal normal-case ml-2.5">
+                | HR & Accounts Portal
+              </span>
+            )}
           </h1>
-          
-          {/* TAB LINKS */}
-          <nav className="flex gap-1.5 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
-            <Link
-              to="/supervisor"
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeTab === "supervisor"
-                  ? "bg-orange-500 text-white shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
-              }`}
-            >
-              <Clock className="h-3.5 w-3.5" />
-              Supervisor Portal
-            </Link>
-            <Link
-              to="/hr-accounts"
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeTab === "hr_accounts"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
-              }`}
-            >
-              <Landmark className="h-3.5 w-3.5" />
-              HR & Accounts Portal
-            </Link>
-          </nav>
         </div>
 
         {/* Action Controls */}
