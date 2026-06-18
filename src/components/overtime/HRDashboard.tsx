@@ -55,12 +55,12 @@ export const HRDashboard: React.FC = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 rounded-xl shadow-lg border-b border-emerald-700 text-white flex items-center justify-between">
+      <div className="bg-zinc-950 border-l-4 border-l-yellow-500 p-6 rounded-xl shadow-lg border-b border-zinc-900 text-white flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <ShieldCheck className="h-6.5 w-6.5" /> HR Overtime Audit & Monitoring Log
           </h2>
-          <p className="text-xs text-emerald-50 mt-1 uppercase tracking-wider font-semibold">
+          <p className="text-xs text-yellow-400 mt-1 uppercase tracking-wider font-semibold">
             Centralized monitoring ledger for tracking compliance, timesheets, and manager approvals.
           </p>
         </div>
@@ -77,7 +77,7 @@ export const HRDashboard: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by ID, Name, or Department..."
-            className="w-full h-10 border border-zinc-300 rounded-lg pl-10 pr-4 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full h-10 border border-zinc-300 rounded-lg pl-10 pr-4 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         </div>
 
@@ -87,7 +87,7 @@ export const HRDashboard: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 border border-zinc-300 rounded-lg text-xs px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-semibold text-zinc-700"
+            className="h-10 border border-zinc-300 rounded-lg text-xs px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white font-semibold text-zinc-700"
           >
             <option value="All">Active Requests</option>
             <option value="Pending">Pending</option>
@@ -102,7 +102,7 @@ export const HRDashboard: React.FC = () => {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-10 border border-zinc-300 rounded-lg text-xs px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-semibold text-zinc-700"
+            className="h-10 border border-zinc-300 rounded-lg text-xs px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white font-semibold text-zinc-700"
           >
             <option value="All">All Workers</option>
             <option value="Senior Staff">Senior Staff</option>
@@ -138,7 +138,7 @@ export const HRDashboard: React.FC = () => {
                 let statusStyle = "bg-amber-50 text-amber-700 border-amber-200";
                 if (r.status === "Approved") statusStyle = "bg-green-50 text-green-700 border-green-200";
                 if (r.status === "Rejected") statusStyle = "bg-red-50 text-red-700 border-red-200";
-                if (r.status === "Paid") statusStyle = "bg-indigo-50 text-indigo-700 border-indigo-200";
+                if (r.status === "Paid") statusStyle = "bg-zinc-950 text-yellow-500 border-zinc-900 font-extrabold";
 
                 return (
                   <React.Fragment key={r.id}>
@@ -169,7 +169,7 @@ export const HRDashboard: React.FC = () => {
                     {isExpanded && (
                       <tr className="bg-zinc-50/70 border-b">
                         <td colSpan={9} className="p-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left border-l-2 border-l-emerald-500 pl-4 py-1">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left border-l-2 border-l-yellow-500 pl-4 py-1">
                             
                             <div className="space-y-3">
                               <div>
@@ -200,7 +200,7 @@ export const HRDashboard: React.FC = () => {
                                                   min="0"
                                                   value={editRows[idx]?.hours ?? 0}
                                                   onChange={(e) => handleEditHourChange(idx, parseFloat(e.target.value) || 0)}
-                                                  className="w-16 border border-zinc-300 rounded px-1.5 py-0.5 text-right text-[11px] font-bold text-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                                  className="w-16 border border-zinc-300 rounded px-1.5 py-0.5 text-right text-[11px] font-bold text-zinc-800 focus:outline-none focus:ring-1 focus:ring-yellow-500"
                                                 />
                                               ) : (
                                                 row.hours.toFixed(2)
@@ -234,7 +234,7 @@ export const HRDashboard: React.FC = () => {
                               {r.comments && (
                                 <div>
                                   <span className="text-[10px] uppercase font-extrabold text-zinc-400 tracking-wider">Review Comments</span>
-                                  <p className="text-[11px] text-emerald-800 bg-emerald-50 p-2.5 rounded border border-emerald-100 mt-1 italic leading-relaxed font-semibold">
+                                  <p className="text-[11px] text-zinc-800 bg-zinc-50 p-2.5 rounded border border-zinc-200 mt-1 italic leading-relaxed font-semibold">
                                     "{r.comments}"
                                   </p>
                                 </div>
@@ -249,7 +249,7 @@ export const HRDashboard: React.FC = () => {
                                   <>
                                     <button
                                       onClick={() => saveAdjustments(r.id)}
-                                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer transition-colors shadow-sm"
+                                      className="px-3.5 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 font-extrabold font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer transition-colors shadow-sm"
                                     >
                                       Save Hours
                                     </button>
@@ -265,7 +265,7 @@ export const HRDashboard: React.FC = () => {
                                     {r.status === "Approved" && (
                                       <button
                                         onClick={() => markRequestAsPaid(r.id)}
-                                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer transition-colors shadow-sm"
+                                        className="px-3.5 py-1.5 bg-zinc-900 border border-yellow-500 text-yellow-500 hover:bg-zinc-850 font-extrabold font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer transition-colors shadow-sm"
                                       >
                                         Mark as Paid & Clear
                                       </button>
@@ -302,3 +302,4 @@ export const HRDashboard: React.FC = () => {
     </div>
   );
 };
+

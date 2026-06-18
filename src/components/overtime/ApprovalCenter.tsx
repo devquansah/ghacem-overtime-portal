@@ -39,16 +39,16 @@ export const ApprovalCenter: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       
       {/* Overview Card */}
-      <div className="bg-gradient-to-r from-orange-500 to-amber-600 p-6 rounded-xl shadow-lg border-b border-orange-600 text-white flex items-center justify-between">
+      <div className="bg-zinc-950 border-l-4 border-l-yellow-500 p-6 rounded-xl shadow-lg  text-white flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Supervisor Approval Center</h2>
-          <p className="text-xs text-orange-50 mt-1 uppercase tracking-wider font-semibold">
+          <p className="text-xs text-yellow-400 mt-1 uppercase tracking-wider font-semibold">
             Evaluate pending employee overtime requests and log sign-offs.
           </p>
         </div>
         <div className="bg-white/10 px-4 py-2 rounded-lg border border-white/20 backdrop-blur-sm">
           <span className="text-3xl font-extrabold">{pendingRequests.length}</span>
-          <span className="text-[10px] uppercase font-bold tracking-wider block text-orange-100">
+          <span className="text-[10px] uppercase font-bold tracking-wider block text-yellow-100">
             Pending Queue
           </span>
         </div>
@@ -71,7 +71,7 @@ export const ApprovalCenter: React.FC = () => {
                 }}
                 className={`p-3 rounded-lg border cursor-pointer transition-all select-none text-left ${
                   selectedId === r.id
-                    ? "border-orange-500 bg-orange-50/60 ring-2 ring-orange-200"
+                    ? "border-yellow-500 bg-yellow-50/60 ring-2 ring-yellow-200"
                     : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
                 }`}
               >
@@ -82,7 +82,7 @@ export const ApprovalCenter: React.FC = () => {
                 <div className="text-xs font-bold text-zinc-700">{r.employeeName}</div>
                 <div className="text-[10px] text-zinc-500 flex justify-between mt-1.5 font-semibold">
                   <span>{r.department}</span>
-                  <span className="text-orange-600">{r.totalHours} hrs</span>
+                  <span className="text-yellow-600">{r.totalHours} hrs</span>
                 </div>
               </div>
             ))}
@@ -170,7 +170,7 @@ export const ApprovalCenter: React.FC = () => {
                       type="text"
                       value={approver}
                       onChange={(e) => setApprover(e.target.value)}
-                      className="w-full h-10 border border-zinc-300 rounded px-3 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500 font-semibold"
+                      className="w-full h-10 border border-zinc-300 rounded px-3 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 font-semibold"
                       placeholder="Enter your name to sign"
                       required
                     />
@@ -181,7 +181,7 @@ export const ApprovalCenter: React.FC = () => {
                       type="text"
                       value={comments}
                       onChange={(e) => setComments(e.target.value)}
-                      className="w-full h-10 border border-zinc-300 rounded px-3 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      className="w-full h-10 border border-zinc-300 rounded px-3 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500"
                       placeholder="Add review notes or reason..."
                     />
                   </div>
@@ -190,13 +190,13 @@ export const ApprovalCenter: React.FC = () => {
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <button
                     onClick={() => handleAction("Approved")}
-                    className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider rounded shadow flex items-center justify-center gap-1.5 transition-colors"
+                    className="h-11 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 font-extrabold font-extrabold text-xs uppercase tracking-wider rounded shadow flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Check className="h-4 w-4" /> Approve Request
                   </button>
                   <button
                     onClick={() => handleAction("Rejected")}
-                    className="h-11 bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs uppercase tracking-wider rounded shadow flex items-center justify-center gap-1.5 transition-colors"
+                    className="h-11 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-extrabold text-xs uppercase tracking-wider rounded shadow flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <X className="h-4 w-4" /> Reject Request
                   </button>
@@ -218,3 +218,6 @@ export const ApprovalCenter: React.FC = () => {
     </div>
   );
 };
+
+
+

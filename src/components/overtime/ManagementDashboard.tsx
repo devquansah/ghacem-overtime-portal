@@ -112,18 +112,18 @@ export const ManagementDashboard: React.FC = () => {
     }).sort((a, b) => b.Cost - a.Cost).slice(0, 10);
   }, [requests, employees, multipliers]);
 
-  const COLORS = ["#1B365D", "#E87722", "#387C2B", "#7030A0", "#0088FE", "#FFBB28", "#FF8042"];
+  const COLORS = ["#09090b", "#eab308", "#27272a", "#ca8a04", "#52525b", "#facc15", "#71717a"];
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 text-left">
       
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-6 rounded-xl shadow-lg border-b border-slate-950 text-white flex items-center justify-between">
+      <div className="bg-zinc-950 border-l-4 border-l-yellow-500 p-6 rounded-xl shadow-lg border-b border-zinc-900 text-white flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <BarChart3 className="h-6.5 w-6.5 text-amber-500" /> Executive Management Dashboard
+            <BarChart3 className="h-6.5 w-6.5 text-yellow-500" /> Executive Management Dashboard
           </h2>
-          <p className="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">
+          <p className="text-xs text-yellow-400 mt-1 uppercase tracking-wider font-semibold">
             Real-time workforce utilization trends, aggregates, and financial summaries.
           </p>
         </div>
@@ -174,9 +174,9 @@ export const ManagementDashboard: React.FC = () => {
 
         <div className="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between col-span-2 md:col-span-1">
           <span className="text-[9px] font-extrabold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
-            <AlertTriangle className="h-3.5 w-3.5 text-orange-500" /> Pending Approvals
+            <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" /> Pending Approvals
           </span>
-          <span className="text-2xl font-extrabold text-orange-600 mt-2">
+          <span className="text-2xl font-extrabold text-yellow-600 mt-2">
             {stats.pending}
           </span>
           <span className="text-[9px] text-zinc-400 font-bold uppercase mt-1">Awaiting review</span>
@@ -198,11 +198,11 @@ export const ManagementDashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#EAEAEA" />
                 <XAxis dataKey="month" stroke="#71717A" fontSize={10} tickLine={false} />
                 <YAxis yAxisId="left" stroke="#1B365D" fontSize={10} tickLine={false} />
-                <YAxis yAxisId="right" orientation="right" stroke="#E87722" fontSize={10} tickLine={false} />
+                <YAxis yAxisId="right" orientation="right" stroke="#eab308" fontSize={10} tickLine={false} />
                 <Tooltip />
                 <Legend verticalAlign="top" height={36} iconSize={8} />
-                <Line yAxisId="left" type="monotone" dataKey="Hours" stroke="#1B365D" strokeWidth={2} name="OT Hours" activeDot={{ r: 6 }} />
-                <Line yAxisId="right" type="monotone" dataKey="Cost" stroke="#E87722" strokeWidth={2} name="OT Cost (GHS)" />
+                <Line yAxisId="left" type="monotone" dataKey="Hours" stroke="#09090b" strokeWidth={2} name="OT Hours" activeDot={{ r: 6 }} />
+                <Line yAxisId="right" type="monotone" dataKey="Cost" stroke="#eab308" strokeWidth={2} name="OT Cost (GHS)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -248,8 +248,8 @@ export const ManagementDashboard: React.FC = () => {
                 <YAxis stroke="#71717A" fontSize={10} tickLine={false} />
                 <Tooltip />
                 <Legend verticalAlign="top" height={36} iconSize={8} />
-                <Bar dataKey="Hours" fill="#1B365D" name="Approved Hours" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Cost" fill="#E87722" name="Approved Cost (GHS)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Hours" fill="#09090b" name="Approved Hours" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Cost" fill="#eab308" name="Approved Cost (GHS)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -267,7 +267,7 @@ export const ManagementDashboard: React.FC = () => {
                 <XAxis type="number" stroke="#71717A" fontSize={10} tickLine={false} />
                 <YAxis dataKey="name" type="category" stroke="#71717A" fontSize={10} tickLine={false} width={100} />
                 <Tooltip formatter={(value) => `GHS ${value}`} />
-                <Bar dataKey="Cost" fill="#7030A0" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="Cost" fill="#eab308" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

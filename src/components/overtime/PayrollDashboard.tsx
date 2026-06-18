@@ -1,10 +1,10 @@
 import React, { useMemo, useRef } from "react";
 import { useOvertime } from "@/lib/overtime/store";
-import { ShieldAlert, Receipt, Download, Upload, Printer } from "lucide-react";
+import { ShieldAlert, Download, Upload, Printer } from "lucide-react";
 import { toast } from "sonner";
 
 export const PayrollDashboard: React.FC = () => {
-  const { requests, employees, multipliers, maxMonthlyHours, withholdingTax, payeTax, importRequests } = useOvertime();
+  const { requests, employees, multipliers, maxMonthlyHours, importRequests } = useOvertime();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Aggregate approved or paid records for each employee (configured for June 2026)
@@ -25,10 +25,6 @@ export const PayrollDashboard: React.FC = () => {
         return sum + (r.totalHours * mult * emp.hourlyRate);
       }, 0);
 
-      const taxRate = emp.category === "Contract Workers" ? withholdingTax : payeTax;
-      const taxDeduction = totalPay * taxRate;
-      const netPay = totalPay - taxDeduction;
-
       return {
         id: emp.id,
         name: emp.name,
@@ -36,23 +32,18 @@ export const PayrollDashboard: React.FC = () => {
         department: emp.department,
         rate: emp.hourlyRate,
         hours: totalHours,
-        gross: totalPay,
-        taxRate,
-        taxDeduction,
-        net: netPay
+        pay: totalPay
       };
     });
-  }, [requests, employees, multipliers, withholdingTax, payeTax]);
+  }, [requests, employees, multipliers]);
 
   // Sum aggregates for bottom total row
   const totals = useMemo(() => {
     return payrollData.reduce((acc, curr) => {
       acc.hours += curr.hours;
-      acc.gross += curr.gross;
-      acc.taxDeduction += curr.taxDeduction;
-      acc.net += curr.net;
+      acc.pay += curr.pay;
       return acc;
-    }, { hours: 0, gross: 0, taxDeduction: 0, net: 0 });
+    }, { hours: 0, pay: 0 });
   }, [payrollData]);
 
   // Flag compliance warnings
@@ -68,10 +59,7 @@ export const PayrollDashboard: React.FC = () => {
         "Department",
         "Hourly Rate (GHS)",
         "Approved Hours",
-        "Gross OT Pay (GHS)",
-        "Tax Rate",
-        "Tax Deduction (GHS)",
-        "Net OT Pay (GHS)"
+        "OT Pay (GHS)"
       ];
 
       const csvRows = payrollData.map(p => [
@@ -81,10 +69,7 @@ export const PayrollDashboard: React.FC = () => {
         p.department,
         p.rate.toFixed(2),
         p.hours.toFixed(2),
-        p.gross.toFixed(2),
-        `${(p.taxRate * 100).toFixed(1)}%`,
-        p.taxDeduction.toFixed(2),
-        p.net.toFixed(2)
+        p.pay.toFixed(2)
       ]);
 
       // Add totals row
@@ -95,10 +80,7 @@ export const PayrollDashboard: React.FC = () => {
         "",
         "",
         totals.hours.toFixed(2),
-        totals.gross.toFixed(2),
-        "",
-        totals.taxDeduction.toFixed(2),
-        totals.net.toFixed(2)
+        totals.pay.toFixed(2)
       ]);
 
       const csvContent = [
@@ -210,14 +192,14 @@ export const PayrollDashboard: React.FC = () => {
         }
       `}</style>
 
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-purple-700 to-indigo-800 p-6 rounded-xl shadow-lg border-b border-indigo-900 text-white flex items-center justify-between flex-wrap gap-4 print-container">
+      {/* Header Banner - Ghacem Black & Yellow */}
+      <div className="bg-zinc-950 p-6 rounded-xl shadow-lg border-l-4 border-l-yellow-500 text-white flex items-center justify-between flex-wrap gap-4 print-container">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Receipt className="h-6.5 w-6.5" /> Payroll Overtime summary & tax ledger
+            Payroll Overtime summary ledger
           </h2>
-          <p className="text-xs text-indigo-50 mt-1 uppercase tracking-wider font-semibold">
-            Reconciliation worksheet for June 2026: calculates PAYE tax, contractor withholding, and net payrolls.
+          <p className="text-xs text-yellow-400 mt-1 uppercase tracking-wider font-extrabold">
+            Reconciliation worksheet for June 2026: Ghacem operations payroll summary.
           </p>
         </div>
 
@@ -227,7 +209,7 @@ export const PayrollDashboard: React.FC = () => {
           {/* Import JSON button */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-bold text-zinc-100 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+            className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-bold text-yellow-500 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
             title="Import JSON Backup file"
           >
             <Upload className="h-3.5 w-3.5" /> Import JSON
@@ -240,18 +222,19 @@ export const PayrollDashboard: React.FC = () => {
             className="hidden"
           />
 
-          {/* Export Dropdown / Buttons */}
+          {/* Export CSV */}
           <button
             onClick={handleExportCSV}
-            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-bold text-zinc-100 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+            className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-bold text-yellow-500 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
             title="Export summary to CSV"
           >
             <Download className="h-3.5 w-3.5" /> Export CSV
           </button>
 
+          {/* Backup JSON */}
           <button
             onClick={handleExportJSON}
-            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-bold text-zinc-100 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+            className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-bold text-yellow-500 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
             title="Backup all records to JSON"
           >
             <Download className="h-3.5 w-3.5" /> Backup JSON
@@ -260,10 +243,10 @@ export const PayrollDashboard: React.FC = () => {
           {/* Print button */}
           <button
             onClick={handlePrint}
-            className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+            className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 font-extrabold text-xs rounded-lg flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
             title="Open browser print preview"
           >
-            <Printer className="h-3.5 w-3.5" /> Print Summary
+            <Printer className="h-3.5 w-3.5 text-zinc-950" /> Print Summary
           </button>
           
         </div>
@@ -289,15 +272,12 @@ export const PayrollDashboard: React.FC = () => {
             <thead className="bg-zinc-100 border-b text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-3 w-[12%]">Employee ID</th>
-                <th className="py-3.5 px-3 w-[18%]">Full Name</th>
-                <th className="py-3.5 px-3 w-[12%] text-center">Staff Type</th>
-                <th className="py-3.5 px-3 w-[12%]">Department</th>
-                <th className="py-3.5 px-3 w-[10%] text-right">Hourly Rate</th>
+                <th className="py-3.5 px-3 w-[22%]">Full Name</th>
+                <th className="py-3.5 px-3 w-[14%] text-center">Staff Type</th>
+                <th className="py-3.5 px-3 w-[16%]">Department</th>
+                <th className="py-3.5 px-3 w-[12%] text-right">Hourly Rate</th>
                 <th className="py-3.5 px-3 w-[12%] text-right">Approved Hours</th>
-                <th className="py-3.5 px-3 w-[14%] text-right">Gross OT Pay (GHS)</th>
-                <th className="py-3.5 px-3 w-[8%] text-right">Tax Rate</th>
-                <th className="py-3.5 px-3 w-[12%] text-right">Tax Deduction</th>
-                <th className="py-3.5 px-3 w-[14%] text-right">Net OT Pay (GHS)</th>
+                <th className="py-3.5 px-3 w-[12%] text-right">OT Pay (GHS)</th>
               </tr>
             </thead>
             <tbody>
@@ -317,8 +297,8 @@ export const PayrollDashboard: React.FC = () => {
                         p.category === "Contract Workers"
                           ? "bg-slate-50 text-slate-600 border-slate-200"
                           : p.category === "Senior Staff"
-                          ? "bg-indigo-50 text-indigo-700 border-indigo-100"
-                          : "bg-blue-50 text-blue-700 border-blue-100"
+                          ? "bg-yellow-50 text-yellow-800 border-yellow-200"
+                          : "bg-zinc-50 text-zinc-800 border-zinc-200"
                       }`}>
                         {p.category}
                       </span>
@@ -328,10 +308,7 @@ export const PayrollDashboard: React.FC = () => {
                     <td className={`p-3 text-right font-extrabold ${limitExceeded ? "text-red-600 font-extrabold" : ""}`}>
                       {p.hours.toFixed(2)} {limitExceeded && "⚠️"}
                     </td>
-                    <td className="p-3 text-right text-zinc-900">GHS {p.gross.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td className="p-3 text-right text-zinc-500">{(p.taxRate * 100).toFixed(1)}%</td>
-                    <td className="p-3 text-right text-red-600">-GHS {p.taxDeduction.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td className="p-3 text-right font-extrabold text-zinc-900 bg-zinc-50/40">GHS {p.net.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="p-3 text-right font-extrabold text-zinc-900 bg-zinc-50/40">GHS {p.pay.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   </tr>
                 );
               })}
@@ -340,10 +317,7 @@ export const PayrollDashboard: React.FC = () => {
               <tr className="bg-zinc-100 font-extrabold text-zinc-900 border-t border-t-zinc-300">
                 <td colSpan={5} className="p-4 text-right uppercase tracking-wider text-[10px]">Total Approved:</td>
                 <td className="p-4 text-right font-extrabold">{totals.hours.toFixed(2)}</td>
-                <td className="p-4 text-right text-zinc-950">GHS {totals.gross.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td className="p-4 bg-zinc-100"></td>
-                <td className="p-4 text-right text-red-700">-GHS {totals.taxDeduction.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td className="p-4 text-right text-zinc-950 bg-zinc-200/50">GHS {totals.net.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="p-4 text-right text-zinc-950 bg-zinc-200/50">GHS {totals.pay.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
             </tbody>
           </table>

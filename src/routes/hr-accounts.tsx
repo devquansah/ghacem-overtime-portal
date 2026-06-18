@@ -62,7 +62,7 @@ function HRAccountsPortalComponent() {
                   onClick={() => setHrSubTab("audit")}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     hrSubTab === "audit"
-                      ? "bg-emerald-600 text-white shadow-sm"
+                      ? "bg-yellow-500 text-zinc-950 shadow-sm"
                       : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                   }`}
                 >
@@ -72,7 +72,7 @@ function HRAccountsPortalComponent() {
                   onClick={() => setHrSubTab("payroll")}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     hrSubTab === "payroll"
-                      ? "bg-purple-700 text-white shadow-sm"
+                      ? "bg-yellow-500 text-zinc-950 shadow-sm"
                       : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                   }`}
                 >
@@ -82,7 +82,7 @@ function HRAccountsPortalComponent() {
                   onClick={() => setHrSubTab("kpis")}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     hrSubTab === "kpis"
-                      ? "bg-zinc-700 text-white shadow-sm"
+                      ? "bg-yellow-500 text-zinc-950 shadow-sm"
                       : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                   }`}
                 >

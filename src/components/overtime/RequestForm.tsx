@@ -149,8 +149,8 @@ export const RequestForm: React.FC = () => {
 
 
       {/* Top Banner Notice */}
-      <div className="bg-zinc-50 p-4 border-l-4 border-l-orange-500 text-xs leading-relaxed space-y-1.5 text-zinc-700 rounded mb-8 font-medium text-left">
-        <p className="font-bold text-orange-600 text-sm mb-1">Important Submission Rules:</p>
+      <div className="bg-zinc-50 p-4 border-l-4 border-l-yellow-500 text-xs leading-relaxed space-y-1.5 text-zinc-700 rounded mb-8 font-medium text-left">
+        <p className="font-bold text-yellow-600 text-sm mb-1">Important Submission Rules:</p>
         <p>• No one may be paid for overtime unless this form has been completed in advance of the overtime work.</p>
         <p>• Overtime is paid only when forty hours have been worked within one normal work week.</p>
       </div>
@@ -159,7 +159,7 @@ export const RequestForm: React.FC = () => {
         
         {/* SECTION 1: EMPLOYEE DETAILS GRID */}
         <div className="space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-800 border-b pb-1 text-left">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-800 border-b-2 border-b-yellow-500 pb-1 text-left">
             1. Employee Information
           </h3>
           
@@ -170,7 +170,7 @@ export const RequestForm: React.FC = () => {
                 type="text"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
-                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
+                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="e.g. EMP001"
                 required
               />
@@ -182,7 +182,7 @@ export const RequestForm: React.FC = () => {
                 type="text"
                 value={employeeName}
                 onChange={(e) => setEmployeeName(e.target.value)}
-                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
+                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="Enter full name"
                 required
               />
@@ -196,7 +196,7 @@ export const RequestForm: React.FC = () => {
                 type="text"
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
-                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
+                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="e.g. Shift Supervisor"
                 required
               />
@@ -208,7 +208,7 @@ export const RequestForm: React.FC = () => {
                 type="text"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
+                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="e.g. Operations"
                 required
               />
@@ -220,7 +220,7 @@ export const RequestForm: React.FC = () => {
                 type="text"
                 value={supervisor}
                 onChange={(e) => setSupervisor(e.target.value)}
-                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
+                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="Enter supervisor name"
                 required
               />
@@ -235,7 +235,7 @@ export const RequestForm: React.FC = () => {
             <select
               value={overtimeType}
               onChange={(e) => setOvertimeType(e.target.value as any)}
-              className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
+              className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             >
               <option value="Weekday">Weekday (1.5x)</option>
               <option value="Weekend">Weekend (2.0x)</option>
@@ -248,7 +248,7 @@ export const RequestForm: React.FC = () => {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as any)}
-              className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
+              className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               required
             >
               <option value="Senior Staff">Senior Staff</option>
@@ -267,7 +267,7 @@ export const RequestForm: React.FC = () => {
             <button
               type="button"
               onClick={addRow}
-              className="text-emerald-700 hover:text-emerald-800 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 focus:outline-none"
+              className="text-yellow-600 hover:text-yellow-700 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 focus:outline-none"
             >
               <Plus className="h-3.5 w-3.5" /> Add Overtime Row
             </button>
@@ -293,7 +293,7 @@ export const RequestForm: React.FC = () => {
                         type="date"
                         value={row.startDate}
                         onChange={(e) => handleRowChange(idx, "startDate", e.target.value)}
-                        className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                        className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500"
                         required
                       />
                     </td>
@@ -302,7 +302,7 @@ export const RequestForm: React.FC = () => {
                         type="date"
                         value={row.endDate}
                         onChange={(e) => handleRowChange(idx, "endDate", e.target.value)}
-                        className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                        className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500"
                         required
                       />
                     </td>
@@ -363,7 +363,7 @@ export const RequestForm: React.FC = () => {
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
             rows={4}
-            className="w-full border border-zinc-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
+            className="w-full border border-zinc-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             placeholder="Please detail the project, maintenance, or operations task driving this overtime demand..."
             required
           />
@@ -410,7 +410,7 @@ export const RequestForm: React.FC = () => {
               id="declaration"
               checked={declaration}
               onChange={(e) => setDeclaration(e.target.checked)}
-              className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-zinc-300 rounded cursor-pointer"
+              className="mt-1 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-zinc-300 rounded cursor-pointer"
               required
             />
             <label htmlFor="declaration" className="text-xs text-zinc-600 leading-normal cursor-pointer select-none font-medium">
@@ -427,7 +427,7 @@ export const RequestForm: React.FC = () => {
                 type="text"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
-                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent font-semibold"
+                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent font-semibold"
                 placeholder="Type your full name to sign"
                 required
               />
@@ -439,7 +439,7 @@ export const RequestForm: React.FC = () => {
         <div className="border-t pt-6">
           <button
             type="submit"
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider py-4 px-6 rounded shadow transition-colors flex items-center justify-center gap-1.5"
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-zinc-950 font-extrabold text-xs uppercase tracking-wider py-4 px-6 rounded shadow transition-colors flex items-center justify-center gap-1.5"
           >
             <Check className="h-4 w-4" /> Submit Overtime Request
           </button>
@@ -456,3 +456,5 @@ export const RequestForm: React.FC = () => {
     </div>
   );
 };
+
+

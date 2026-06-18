@@ -23,7 +23,7 @@ function EmployeePortalComponent() {
       <header className="bg-zinc-900 border-b border-zinc-800 text-white sticky top-0 z-50 shadow-md">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3 select-none">
-            <h1 className="text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500 uppercase">
+            <h1 className="text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 uppercase">
               OVERTIME PORTAL <span className="text-zinc-400 text-xs font-bold font-sans tracking-normal normal-case ml-2.5">| Employee Form</span>
             </h1>
           </div>
