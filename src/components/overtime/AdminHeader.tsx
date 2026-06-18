@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@tanstack/react-router";
 import { Clock, Landmark, LogOut, RefreshCw, ArrowLeft } from "lucide-react";
+import logoUrl from "@/assets/logo.png";
 
 interface AdminHeaderProps {
   activeTab: "supervisor" | "hr_accounts";
@@ -21,6 +22,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3 select-none">
+          <img src={logoUrl} alt="Heidelberg Materials Logo" className="h-8 object-contain" />
           <h1 className="text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 uppercase">
             OVERTIME PORTAL
             {activeTab === "supervisor" && (
