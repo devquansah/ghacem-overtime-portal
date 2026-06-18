@@ -7,9 +7,9 @@ A secure, centralized multi-portal web application built to streamline overtime 
 ## 🌟 Key Features
 
 ### 1. Multi-Portal Workspaces (Isolated Modules)
-* **Employee Portal (Public)**: Direct access to the manual timesheet request form. No login credentials required for rapid submission.
-* **Supervisor Portal (Private)**: Protected workflow for department managers to view pending overtime requests, enter reviews, and approve/reject timesheets.
-* **HR & Accounts Portal (Private)**: Integrated suite for compliance ledger audits, payroll calculations, and executive KPI analytics.
+* **Employee Portal (Public)**: Dedicated route at `/`. Contains only the timesheet request form. Isolated from administrative controls to ensure maximum security.
+* **Supervisor Portal (Private)**: Dedicated route at `/supervisor`. Protected workflow for department managers to view pending overtime requests, enter reviews, and approve/reject timesheets.
+* **HR & Accounts Portal (Private)**: Dedicated route at `/hr-accounts`. Compliance ledger audits, payroll calculations, and executive KPI analytics.
 
 ### 2. Windows Active Directory (AD) Sign-In Replica
 * Real-world simulation of enterprise **Microsoft Azure AD / Windows Sign-in** authentication.
@@ -73,10 +73,14 @@ npm run build
 
 ## 📁 Repository Structure
 
-* `src/routes/index.tsx` - Portal Selector landing screen.
+* `src/routes/index.tsx` - Standalone Employee Portal page (`/`).
+* `src/routes/supervisor.tsx` - Dedicated Supervisor Portal page (`/supervisor`).
+* `src/routes/hr-accounts.tsx` - Dedicated HR & Accounts Portal page (`/hr-accounts`).
+* `src/components/overtime/ActiveDirectoryLogin.tsx` - Shared corporate Active Directory sign-in.
+* `src/components/overtime/AdminHeader.tsx` - Admin top navigation tabs linking `/supervisor` and `/hr-accounts`.
 * `src/components/overtime/RequestForm.tsx` - Employee timesheet submission form.
 * `src/components/overtime/ApprovalCenter.tsx` - Supervisor approvals queue.
-* `src/components/overtime/HRDashboard.tsx` - HR Overtime Audit & Monitoring ledger (includes inline hours adjustment).
-* `src/components/overtime/PayrollDashboard.tsx` - Accounting contractor & staff payroll ledger.
-* `src/components/overtime/ManagementDashboard.tsx` - Executive KPI dashboard charts.
+* `src/components/overtime/HRDashboard.tsx` - HR Overtime Audit ledger (includes hours adjustments).
+* `src/components/overtime/PayrollDashboard.tsx` - Accounting payroll calculator.
+* `src/components/overtime/ManagementDashboard.tsx` - Executive KPI analytics dashboard.
 * `src/lib/overtime/store.tsx` - State provider, default employee database, and business math logic.

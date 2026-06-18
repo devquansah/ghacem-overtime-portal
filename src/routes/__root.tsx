@@ -113,13 +113,19 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+import { OvertimeProvider } from "../lib/overtime/store";
+import { Toaster } from "../components/ui/sonner";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <OvertimeProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster richColors position="top-right" />
+      </OvertimeProvider>
     </QueryClientProvider>
   );
 }

@@ -9,8 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupervisorRouteImport } from './routes/supervisor'
+import { Route as HrAccountsRouteImport } from './routes/hr-accounts'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SupervisorRoute = SupervisorRouteImport.update({
+  id: '/supervisor',
+  path: '/supervisor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HrAccountsRoute = HrAccountsRouteImport.update({
+  id: '/hr-accounts',
+  path: '/hr-accounts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +31,50 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/hr-accounts': typeof HrAccountsRoute
+  '/supervisor': typeof SupervisorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/hr-accounts': typeof HrAccountsRoute
+  '/supervisor': typeof SupervisorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/hr-accounts': typeof HrAccountsRoute
+  '/supervisor': typeof SupervisorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/hr-accounts' | '/supervisor'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/hr-accounts' | '/supervisor'
+  id: '__root__' | '/' | '/hr-accounts' | '/supervisor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HrAccountsRoute: typeof HrAccountsRoute
+  SupervisorRoute: typeof SupervisorRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/supervisor': {
+      id: '/supervisor'
+      path: '/supervisor'
+      fullPath: '/supervisor'
+      preLoaderRoute: typeof SupervisorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hr-accounts': {
+      id: '/hr-accounts'
+      path: '/hr-accounts'
+      fullPath: '/hr-accounts'
+      preLoaderRoute: typeof HrAccountsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HrAccountsRoute: HrAccountsRoute,
+  SupervisorRoute: SupervisorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
