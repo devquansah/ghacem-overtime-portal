@@ -176,7 +176,7 @@ export const RequestForm: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-1.5 col-span-2">
+            <div className="space-y-1.5 col-span-3">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Employee Name</label>
               <input
                 type="text"
@@ -184,17 +184,6 @@ export const RequestForm: React.FC = () => {
                 onChange={(e) => setEmployeeName(e.target.value)}
                 className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
                 placeholder="Enter full name"
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Date Completed</label>
-              <input
-                type="date"
-                value={dateCompleted}
-                onChange={(e) => setDateCompleted(e.target.value)}
-                className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
                 required
               />
             </div>
