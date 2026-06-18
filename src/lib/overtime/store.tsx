@@ -32,7 +32,7 @@ export interface OvertimeRequest {
   rows: OvertimeRow[];
   totalHours: number;
   explanation: string;
-  status: "Pending" | "Approved" | "Rejected";
+  status: "Pending" | "Approved" | "Rejected" | "Paid";
   approvedBy: string;
   dateApproved: string;
   comments: string;
@@ -50,6 +50,8 @@ interface OvertimeContextType {
   approveRequest: (id: string, approverName: string, comments: string) => void;
   rejectRequest: (id: string, approverName: string, comments: string) => void;
   updateRequestHours: (id: string, rows: OvertimeRow[], totalHours: number) => void;
+  markRequestAsPaid: (id: string) => void;
+  importRequests: (imported: OvertimeRequest[]) => void;
   resetAllData: () => void;
 }
 
@@ -250,6 +252,28 @@ export const OvertimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem("ghacem_overtime_requests", JSON.stringify(updated));
   };
 
+  const markRequestAsPaid = (id: string) => {
+    const updated = requests.map(r => {
+      if (r.id === id) {
+        return {
+          ...r,
+          status: "Paid" as const
+        };
+      }
+      return r;
+    });
+    setRequests(updated);
+    localStorage.setItem("ghacem_overtime_requests", JSON.stringify(updated));
+  };
+
+  const importRequests = (imported: OvertimeRequest[]) => {
+    const importedIds = new Set(imported.map(r => r.id));
+    const keptRequests = requests.filter(r => !importedIds.has(r.id));
+    const merged = [...imported, ...keptRequests];
+    setRequests(merged);
+    localStorage.setItem("ghacem_overtime_requests", JSON.stringify(merged));
+  };
+
   const resetAllData = () => {
     localStorage.removeItem("ghacem_overtime_requests");
     window.location.reload();
@@ -267,6 +291,8 @@ export const OvertimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       approveRequest,
       rejectRequest,
       updateRequestHours,
+      markRequestAsPaid,
+      importRequests,
       resetAllData
     }}>
       {children}

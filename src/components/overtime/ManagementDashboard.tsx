@@ -18,7 +18,7 @@ export const ManagementDashboard: React.FC = () => {
     let pending = 0;
 
     requests.forEach(r => {
-      if (r.status === "Approved") {
+      if (r.status === "Approved" || r.status === "Paid") {
         hours += r.totalHours;
         
         const mult = multipliers[r.overtimeType] || 1.0;
@@ -44,7 +44,7 @@ export const ManagementDashboard: React.FC = () => {
     const monthNames = ["April 2026", "May 2026", "June 2026"];
 
     return months.map((m, idx) => {
-      const approved = requests.filter(r => r.status === "Approved" && r.dateCompleted.includes(`-` + m + `-`));
+      const approved = requests.filter(r => (r.status === "Approved" || r.status === "Paid") && r.dateCompleted.includes(`-` + m + `-`));
       const hours = approved.reduce((sum, r) => sum + r.totalHours, 0);
       const cost = approved.reduce((sum, r) => {
         const mult = multipliers[r.overtimeType] || 1.0;
@@ -63,7 +63,7 @@ export const ManagementDashboard: React.FC = () => {
   const deptsData = useMemo(() => {
     const depts = ["Operations", "Logistics", "Maintenance", "HR", "Finance", "Safety", "Sales"];
     return depts.map(d => {
-      const approved = requests.filter(r => r.status === "Approved" && r.department === d);
+      const approved = requests.filter(r => (r.status === "Approved" || r.status === "Paid") && r.department === d);
       const cost = approved.reduce((sum, r) => {
         const mult = multipliers[r.overtimeType] || 1.0;
         return sum + (r.totalHours * mult * r.hourlyRate);
@@ -81,7 +81,7 @@ export const ManagementDashboard: React.FC = () => {
     const categories = ["Senior Staff", "Junior Staff", "Contract Workers"];
     
     return categories.map(c => {
-      const approved = requests.filter(r => r.status === "Approved" && r.category === c);
+      const approved = requests.filter(r => (r.status === "Approved" || r.status === "Paid") && r.category === c);
       const hours = approved.reduce((sum, r) => sum + r.totalHours, 0);
       const cost = approved.reduce((sum, r) => {
         const mult = multipliers[r.overtimeType] || 1.0;
@@ -99,7 +99,7 @@ export const ManagementDashboard: React.FC = () => {
   // 5. Chart 4 Data: Top Employee Earners
   const employeeData = useMemo(() => {
     return employees.map(emp => {
-      const approved = requests.filter(r => r.status === "Approved" && r.employeeId === emp.id);
+      const approved = requests.filter(r => (r.status === "Approved" || r.status === "Paid") && r.employeeId === emp.id);
       const cost = approved.reduce((sum, r) => {
         const mult = multipliers[r.overtimeType] || 1.0;
         return sum + (r.totalHours * mult * emp.hourlyRate);

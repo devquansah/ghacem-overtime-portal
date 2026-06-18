@@ -3,7 +3,7 @@ import { useOvertime } from "@/lib/overtime/store";
 import { Search, Filter, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 
 export const HRDashboard: React.FC = () => {
-  const { requests, updateRequestHours } = useOvertime();
+  const { requests, updateRequestHours, markRequestAsPaid } = useOvertime();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -42,7 +42,10 @@ export const HRDashboard: React.FC = () => {
       r.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.employeeId.toLowerCase().includes(searchQuery.toLowerCase());
       
-    const matchesStatus = statusFilter === "All" || r.status === statusFilter;
+    const matchesStatus = 
+      statusFilter === "All" 
+        ? r.status !== "Paid" 
+        : r.status === statusFilter;
     const matchesCategory = categoryFilter === "All" || r.category === categoryFilter;
 
     return matchesSearch && matchesStatus && matchesCategory;
@@ -86,10 +89,11 @@ export const HRDashboard: React.FC = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="h-10 border border-zinc-300 rounded-lg text-xs px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-semibold text-zinc-700"
           >
-            <option value="All">All Statuses</option>
+            <option value="All">Active Requests</option>
             <option value="Pending">Pending</option>
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
+            <option value="Paid">Paid (Archived)</option>
           </select>
         </div>
 
@@ -134,6 +138,7 @@ export const HRDashboard: React.FC = () => {
                 let statusStyle = "bg-amber-50 text-amber-700 border-amber-200";
                 if (r.status === "Approved") statusStyle = "bg-green-50 text-green-700 border-green-200";
                 if (r.status === "Rejected") statusStyle = "bg-red-50 text-red-700 border-red-200";
+                if (r.status === "Paid") statusStyle = "bg-indigo-50 text-indigo-700 border-indigo-200";
 
                 return (
                   <React.Fragment key={r.id}>
@@ -256,12 +261,22 @@ export const HRDashboard: React.FC = () => {
                                     </button>
                                   </>
                                 ) : (
-                                  <button
-                                    onClick={() => startEditing(r)}
-                                    className="px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-750 font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer transition-colors"
-                                  >
-                                    Adjust Hours
-                                  </button>
+                                  <>
+                                    {r.status === "Approved" && (
+                                      <button
+                                        onClick={() => markRequestAsPaid(r.id)}
+                                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer transition-colors shadow-sm"
+                                      >
+                                        Mark as Paid & Clear
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => startEditing(r)}
+                                      className="px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-750 font-bold text-[10px] uppercase tracking-wider rounded cursor-pointer transition-colors"
+                                    >
+                                      Adjust Hours
+                                    </button>
+                                  </>
                                 )}
                               </div>
                             </div>

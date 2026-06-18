@@ -1,17 +1,19 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import { useOvertime } from "@/lib/overtime/store";
-import { ShieldAlert, Receipt, CircleDollarSign } from "lucide-react";
+import { ShieldAlert, Receipt, Download, Upload, Printer } from "lucide-react";
+import { toast } from "sonner";
 
 export const PayrollDashboard: React.FC = () => {
-  const { requests, employees, multipliers, maxMonthlyHours, withholdingTax, payeTax } = useOvertime();
+  const { requests, employees, multipliers, maxMonthlyHours, withholdingTax, payeTax, importRequests } = useOvertime();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Aggregate approved records for each employee (configured for June 2026)
+  // Aggregate approved or paid records for each employee (configured for June 2026)
   const payrollData = useMemo(() => {
     return employees.map(emp => {
-      // Find all approved requests for this employee in June 2026
+      // Find all approved or paid requests for this employee in June 2026
       const approvedReqs = requests.filter(r => 
         r.employeeId === emp.id && 
-        r.status === "Approved" &&
+        (r.status === "Approved" || r.status === "Paid") &&
         r.dateCompleted.startsWith("2026-06")
       );
 
@@ -56,11 +58,160 @@ export const PayrollDashboard: React.FC = () => {
   // Flag compliance warnings
   const flagCount = payrollData.filter(p => p.hours > maxMonthlyHours).length;
 
+  // CSV Export Handler
+  const handleExportCSV = () => {
+    try {
+      const headers = [
+        "Employee ID",
+        "Full Name",
+        "Staff Type",
+        "Department",
+        "Hourly Rate (GHS)",
+        "Approved Hours",
+        "Gross OT Pay (GHS)",
+        "Tax Rate",
+        "Tax Deduction (GHS)",
+        "Net OT Pay (GHS)"
+      ];
+
+      const csvRows = payrollData.map(p => [
+        p.id,
+        p.name,
+        p.category,
+        p.department,
+        p.rate.toFixed(2),
+        p.hours.toFixed(2),
+        p.gross.toFixed(2),
+        `${(p.taxRate * 100).toFixed(1)}%`,
+        p.taxDeduction.toFixed(2),
+        p.net.toFixed(2)
+      ]);
+
+      // Add totals row
+      csvRows.push([
+        "TOTALS",
+        "",
+        "",
+        "",
+        "",
+        totals.hours.toFixed(2),
+        totals.gross.toFixed(2),
+        "",
+        totals.taxDeduction.toFixed(2),
+        totals.net.toFixed(2)
+      ]);
+
+      const csvContent = [
+        headers.join(","),
+        ...csvRows.map(row => row.map(val => `"${val}"`).join(","))
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `ghacem_payroll_summary_june_2026.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("CSV file exported successfully!");
+    } catch (e) {
+      toast.error("Failed to export CSV.");
+    }
+  };
+
+  // JSON Backup Sheet Export (very useful for backups and re-importing)
+  const handleExportJSON = () => {
+    try {
+      const dataStr = JSON.stringify(requests, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `ghacem_overtime_requests_backup.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("JSON backup exported successfully!");
+    } catch (e) {
+      toast.error("Failed to export JSON.");
+    }
+  };
+
+  // JSON Import Handler
+  const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target?.result as string);
+        if (!Array.isArray(imported)) {
+          toast.error("Import failed: JSON file must contain an array of requests.");
+          return;
+        }
+        
+        // Simple schema verification
+        if (imported.length > 0 && (!imported[0].id || !imported[0].employeeName)) {
+          toast.error("Import failed: Invalid data schema.");
+          return;
+        }
+
+        importRequests(imported);
+        toast.success(`Successfully imported ${imported.length} overtime request records!`);
+        
+        // Reset file input value
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      } catch (err) {
+        toast.error("Failed to parse JSON file.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 print-container">
       
+      {/* Dynamic CSS styles for print mode */}
+      <style>{`
+        @media print {
+          body {
+            background-color: white !important;
+            color: black !important;
+          }
+          header, footer, nav, button, select, input, .no-print, [role="tablist"] {
+            display: none !important;
+          }
+          .print-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 10px !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            font-size: 10px !important;
+          }
+          th, td {
+            border: 1px solid #d4d4d8 !important;
+            padding: 6px 8px !important;
+          }
+          tr {
+            page-break-inside: avoid !important;
+          }
+        }
+      `}</style>
+
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-purple-700 to-indigo-800 p-6 rounded-xl shadow-lg border-b border-indigo-900 text-white flex items-center justify-between">
+      <div className="bg-gradient-to-r from-purple-700 to-indigo-800 p-6 rounded-xl shadow-lg border-b border-indigo-900 text-white flex items-center justify-between flex-wrap gap-4 print-container">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Receipt className="h-6.5 w-6.5" /> Payroll Overtime summary & tax ledger
@@ -69,11 +220,58 @@ export const PayrollDashboard: React.FC = () => {
             Reconciliation worksheet for June 2026: calculates PAYE tax, contractor withholding, and net payrolls.
           </p>
         </div>
+
+        {/* TOOLBAR CONTROLS - Hidden in Print */}
+        <div className="flex gap-2 no-print">
+          
+          {/* Import JSON button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-bold text-zinc-100 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+            title="Import JSON Backup file"
+          >
+            <Upload className="h-3.5 w-3.5" /> Import JSON
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImportJSON}
+            accept=".json"
+            className="hidden"
+          />
+
+          {/* Export Dropdown / Buttons */}
+          <button
+            onClick={handleExportCSV}
+            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-bold text-zinc-100 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+            title="Export summary to CSV"
+          >
+            <Download className="h-3.5 w-3.5" /> Export CSV
+          </button>
+
+          <button
+            onClick={handleExportJSON}
+            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-bold text-zinc-100 rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
+            title="Backup all records to JSON"
+          >
+            <Download className="h-3.5 w-3.5" /> Backup JSON
+          </button>
+
+          {/* Print button */}
+          <button
+            onClick={handlePrint}
+            className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+            title="Open browser print preview"
+          >
+            <Printer className="h-3.5 w-3.5" /> Print Summary
+          </button>
+          
+        </div>
       </div>
 
       {/* Safety Compliance Alert */}
       {flagCount > 0 && (
-        <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-3 text-red-800 shadow-sm text-left">
+        <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-3 text-red-800 shadow-sm text-left no-print">
           <ShieldAlert className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
           <div>
             <h4 className="font-extrabold text-xs uppercase tracking-wider">Overtime Hours Safety Breach</h4>
