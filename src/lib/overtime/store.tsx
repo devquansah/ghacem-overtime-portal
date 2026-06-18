@@ -53,6 +53,7 @@ interface OvertimeContextType {
   markRequestAsPaid: (id: string) => void;
   importRequests: (imported: OvertimeRequest[]) => void;
   resetAllData: () => void;
+  refreshData: () => void;
 }
 
 const OvertimeContext = createContext<OvertimeContextType | undefined>(undefined);
@@ -183,6 +184,32 @@ export const OvertimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
+  // Sync state in real-time across tabs/windows when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "ghacem_overtime_requests" && e.newValue) {
+        try {
+          setRequests(JSON.parse(e.newValue));
+        } catch (err) {
+          console.error("Failed to parse sync storage requests", err);
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  const refreshData = () => {
+    const stored = localStorage.getItem("ghacem_overtime_requests");
+    if (stored) {
+      try {
+        setRequests(JSON.parse(stored));
+      } catch (err) {
+        console.error("Failed to parse refresh storage requests", err);
+      }
+    }
+  };
+
   const submitRequest = (newReq: Omit<OvertimeRequest, "id" | "status" | "approvedBy" | "dateApproved" | "comments">): string => {
     const nextNum = requests.length + 1;
     const padNum = String(nextNum).padStart(5, '0');
@@ -293,7 +320,8 @@ export const OvertimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       updateRequestHours,
       markRequestAsPaid,
       importRequests,
-      resetAllData
+      resetAllData,
+      refreshData
     }}>
       {children}
     </OvertimeContext.Provider>

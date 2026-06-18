@@ -6,6 +6,7 @@ import { AdminHeader } from "@/components/overtime/AdminHeader";
 import { HRDashboard } from "@/components/overtime/HRDashboard";
 import { PayrollDashboard } from "@/components/overtime/PayrollDashboard";
 import { ManagementDashboard } from "@/components/overtime/ManagementDashboard";
+import { RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/hr-accounts")({
   head: () => ({
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/hr-accounts")({
 });
 
 function HRAccountsPortalComponent() {
-  const { resetAllData } = useOvertime();
+  const { resetAllData, refreshData } = useOvertime();
   const [session, setSession] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [hrSubTab, setHrSubTab] = useState<"audit" | "payroll" | "kpis">("audit");
@@ -90,8 +91,24 @@ function HRAccountsPortalComponent() {
                 </button>
               </div>
               
-              <div className="text-xs text-zinc-500 font-medium">
-                Active operator: <span className="font-extrabold text-zinc-800">{session.name}</span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={refreshData}
+                  className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 rounded-lg text-[10px] font-bold text-zinc-700 flex items-center gap-1 cursor-pointer transition-colors"
+                  title="Refresh data from storage"
+                >
+                  <RefreshCw className="h-3 w-3" /> Refresh
+                </button>
+                <button
+                  onClick={resetAllData}
+                  className="px-2.5 py-1 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg text-[10px] font-bold text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                  title="Reset to default seed data"
+                >
+                  Reset Data
+                </button>
+                <div className="text-xs text-zinc-500 font-medium ml-2">
+                  Active operator: <span className="font-extrabold text-zinc-800">{session.name}</span>
+                </div>
               </div>
             </div>
 
