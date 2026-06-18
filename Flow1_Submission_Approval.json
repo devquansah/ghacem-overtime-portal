@@ -1,0 +1,252 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "description": "Ghacem Overtime Submission & Approval Flow - Automates employee Form submission, calculates hours, appends records to Excel Online, routes approvals to supervisors, and notifies staff.",
+  "triggers": {
+    "When_a_new_response_is_submitted": {
+      "type": "OpenApiConnection",
+      "inputs": {
+        "host": {
+          "connectionName": "shared_microsoftforms",
+          "operationId": "OnNewResponse",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms"
+        },
+        "parameters": {
+          "formId": "[USER_SELECT_FORM_ID]"
+        }
+      }
+    }
+  },
+  "actions": {
+    "Get_response_details": {
+      "type": "OpenApiConnection",
+      "runAfter": {},
+      "inputs": {
+        "host": {
+          "connectionName": "shared_microsoftforms",
+          "operationId": "GetResponseDetails",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms"
+        },
+        "parameters": {
+          "formId": "[USER_SELECT_FORM_ID]",
+          "responseId": "@triggerOutputs()?['body/resourceData/responseId']"
+        }
+      }
+    },
+    "Get_Employee_Record": {
+      "type": "OpenApiConnection",
+      "runAfter": {
+        "Get_response_details": ["Succeeded"]
+      },
+      "inputs": {
+        "host": {
+          "connectionName": "shared_excelonlinebusiness",
+          "operationId": "GetRow",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+        },
+        "parameters": {
+          "source": "groups/SharePointSiteOrOneDrive",
+          "drive": "[USER_DRIVE_ID]",
+          "file": "[PATH_TO_Ghacem_Overtime_Online_Database.xlsx]",
+          "table": "EmployeeMasterTable",
+          "idColumn": "Employee ID",
+          "id": "@outputs('Get_response_details')?['body/r19a2884a0d9e4a38914de43f11e9f196']" 
+        }
+      }
+    },
+    "List_Existing_Overtime_Rows": {
+      "type": "OpenApiConnection",
+      "runAfter": {
+        "Get_Employee_Record": ["Succeeded"]
+      },
+      "inputs": {
+        "host": {
+          "connectionName": "shared_excelonlinebusiness",
+          "operationId": "GetRows",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+        },
+        "parameters": {
+          "source": "groups/SharePointSiteOrOneDrive",
+          "drive": "[USER_DRIVE_ID]",
+          "file": "[PATH_TO_Ghacem_Overtime_Online_Database.xlsx]",
+          "table": "OvertimeTable"
+        }
+      }
+    },
+    "Generate_Request_ID": {
+      "type": "InitializeVariable",
+      "runAfter": {
+        "List_Existing_Overtime_Rows": ["Succeeded"]
+      },
+      "inputs": {
+        "variables": [
+          {
+            "name": "RequestID",
+            "type": "string",
+            "value": "@concat('OT-2026-', padLeft(string(add(length(outputs('List_Existing_Overtime_Rows')?['body/value']), 1)), 5, '0'))"
+          }
+        ]
+      }
+    },
+    "Insert_Pending_Record_to_Excel": {
+      "type": "OpenApiConnection",
+      "runAfter": {
+        "Generate_Request_ID": ["Succeeded"]
+      },
+      "inputs": {
+        "host": {
+          "connectionName": "shared_excelonlinebusiness",
+          "operationId": "AddRow",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+        },
+        "parameters": {
+          "source": "groups/SharePointSiteOrOneDrive",
+          "drive": "[USER_DRIVE_ID]",
+          "file": "[PATH_TO_Ghacem_Overtime_Online_Database.xlsx]",
+          "table": "OvertimeTable",
+          "item": {
+            "Record ID": "@variables('RequestID')",
+            "Date": "@outputs('Get_response_details')?['body/r584ea731a5b84294ad1cf38ab59ea191']",
+            "Employee ID": "@outputs('Get_response_details')?['body/r19a2884a0d9e4a38914de43f11e9f196']",
+            "Overtime Type": "@outputs('Get_response_details')?['body/r2b8a74e54cf9487c88b0ea760b9ef8ad']",
+            "Approval Status": "Pending",
+            "Approved By": "",
+            "Supervisor Comments": "",
+            "Shift": "@outputs('Get_response_details')?['body/rdf64ea3e5e414c80b27be636d1a6d1a6']",
+            "Start Time": "@outputs('Get_response_details')?['body/rb494ea3e5a5a4c8091be3a6361daea1a']",
+            "End Time": "@outputs('Get_response_details')?['body/rc894ea3e5b6b4c80be3e3a6362dbfa2b']",
+            "Reason": "@outputs('Get_response_details')?['body/rf98ea3e5c7c4c80af3fe3a6363dcfa3c']",
+            "Signature": "@outputs('Get_response_details')?['body/r679ea3e5d8d4c80bfa3f3a6364ddfa4d']"
+          }
+        }
+      }
+    },
+    "Start_Supervisor_Approval": {
+      "type": "OpenApiConnectionWebhook",
+      "runAfter": {
+        "Insert_Pending_Record_to_Excel": ["Succeeded"]
+      },
+      "inputs": {
+        "host": {
+          "connectionName": "shared_approvals",
+          "operationId": "CreateApproval",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals"
+        },
+        "parameters": {
+          "approvalType": "BasicHtml",
+          "title": "@concat('Overtime Approval Request - ', outputs('Get_Employee_Record')?['body/Full Name'], ' (', variables('RequestID'), ')')",
+          "assignedTo": "@outputs('Get_Employee_Record')?['body/Manager Email']",
+          "details": "@concat('Hello Supervisor, <br/><br/> An overtime request requires your action:<br/><ul><li><b>Request ID:</b> ', variables('RequestID'), '</li><li><b>Employee:</b> ', outputs('Get_Employee_Record')?['body/Full Name'], ' (', outputs('Get_Employee_Record')?['body/Employee ID'], ')</li><li><b>Department:</b> ', outputs('Get_Employee_Record')?['body/Department'], '</li><li><b>Date:</b> ', outputs('Get_response_details')?['body/r584ea731a5b84294ad1cf38ab59ea191'], '</li><li><b>Hours:</b> From ', outputs('Get_response_details')?['body/rb494ea3e5a5a4c8091be3a6361daea1a'], ' to ', outputs('Get_response_details')?['body/rc894ea3e5b6b4c80be3e3a6362dbfa2b'], '</li><li><b>Type:</b> ', outputs('Get_response_details')?['body/r2b8a74e54cf9487c88b0ea760b9ef8ad'], '</li><li><b>Reason:</b> ', outputs('Get_response_details')?['body/rf98ea3e5c7c4c80af3fe3a6363dcfa3c'], '</li></ul><br/>Please Approve or Reject this request using the buttons below.')"
+        }
+      }
+    },
+    "Evaluate_Approval_Response": {
+      "type": "If",
+      "runAfter": {
+        "Start_Supervisor_Approval": ["Succeeded"]
+      },
+      "expression": {
+        "and": [
+          {
+            "equals": [
+              "@outputs('Start_Supervisor_Approval')?['body/outcome']",
+              "Approve"
+            ]
+          }
+        ]
+      },
+      "actions": {
+        "Approve_Actions": {
+          "actions": {
+            "Update_Excel_Row_Approved": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_excelonlinebusiness",
+                  "operationId": "UpdateRow",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                },
+                "parameters": {
+                  "source": "groups/SharePointSiteOrOneDrive",
+                  "drive": "[USER_DRIVE_ID]",
+                  "file": "[PATH_TO_Ghacem_Overtime_Online_Database.xlsx]",
+                  "table": "OvertimeTable",
+                  "keyColumn": "Record ID",
+                  "keyValue": "@variables('RequestID')",
+                  "item": {
+                    "Approval Status": "Approved",
+                    "Approved By": "@outputs('Start_Supervisor_Approval')?['body/responder/displayName']",
+                    "Supervisor Comments": "@outputs('Start_Supervisor_Approval')?['body/comments']"
+                  }
+                }
+              }
+            },
+            "Send_Approved_Email_to_Employee": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sendmail",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sendmail"
+                },
+                "parameters": {
+                  "emailMessage": {
+                    "To": "@outputs('Get_response_details')?['body/responder']",
+                    "Subject": "@concat('Overtime Request APPROVED - ', variables('RequestID'))",
+                    "Body": "@concat('Dear ', outputs('Get_Employee_Record')?['body/Full Name'], ',<br/><br/>Your overtime request (ID: ', variables('RequestID'), ') for ', outputs('Get_response_details')?['body/r584ea731a5b84294ad1cf38ab59ea191'], ' has been <b>APPROVED</b> by ', outputs('Start_Supervisor_Approval')?['body/responder/displayName'], '.<br/><br/><b>Supervisor Comments:</b> ', outputs('Start_Supervisor_Approval')?['body/comments'], '<br/><br/>This request has been forwarded to HR and Payroll for processing.')"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "Reject_Actions": {
+          "actions": {
+            "Update_Excel_Row_Rejected": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_excelonlinebusiness",
+                  "operationId": "UpdateRow",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                },
+                "parameters": {
+                  "source": "groups/SharePointSiteOrOneDrive",
+                  "drive": "[USER_DRIVE_ID]",
+                  "file": "[PATH_TO_Ghacem_Overtime_Online_Database.xlsx]",
+                  "table": "OvertimeTable",
+                  "keyColumn": "Record ID",
+                  "keyValue": "@variables('RequestID')",
+                  "item": {
+                    "Approval Status": "Rejected",
+                    "Approved By": "@outputs('Start_Supervisor_Approval')?['body/responder/displayName']",
+                    "Supervisor Comments": "@outputs('Start_Supervisor_Approval')?['body/comments']"
+                  }
+                }
+              }
+            },
+            "Send_Rejected_Email_to_Employee": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sendmail",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sendmail"
+                },
+                "parameters": {
+                  "emailMessage": {
+                    "To": "@outputs('Get_response_details')?['body/responder']",
+                    "Subject": "@concat('Overtime Request REJECTED - ', variables('RequestID'))",
+                    "Body": "@concat('Dear ', outputs('Get_Employee_Record')?['body/Full Name'], ',<br/><br/>Your overtime request (ID: ', variables('RequestID'), ') for ', outputs('Get_response_details')?['body/r584ea731a5b84294ad1cf38ab59ea191'], ' has been <b>REJECTED</b> by ', outputs('Start_Supervisor_Approval')?['body/responder/displayName'], '.<br/><br/><b>Rejection Reason / Comments:</b> ', outputs('Start_Supervisor_Approval')?['body/comments'], '<br/><br/>If you have questions, please contact your direct supervisor.')"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

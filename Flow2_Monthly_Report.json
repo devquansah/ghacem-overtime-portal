@@ -1,0 +1,92 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "description": "Ghacem Overtime Monthly Reporting Flow - Runs on the 1st of every month to extract the Payroll Dashboard data, compile an HTML summary table, and email it to HR, Payroll, and Executive Management.",
+  "triggers": {
+    "Recurrence_Monthly": {
+      "type": "Recurrence",
+      "recurrence": {
+        "frequency": "Month",
+        "interval": 1,
+        "startTime": "2026-07-01T07:00:00Z"
+      }
+    }
+  },
+  "actions": {
+    "Get_Payroll_Summary_Rows": {
+      "type": "OpenApiConnection",
+      "inputs": {
+        "host": {
+          "connectionName": "shared_excelonlinebusiness",
+          "operationId": "GetRows",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+        },
+        "parameters": {
+          "source": "groups/SharePointSiteOrOneDrive",
+          "drive": "[USER_DRIVE_ID]",
+          "file": "[PATH_TO_Ghacem_Overtime_Online_Database.xlsx]",
+          "table": "PayrollSummaryTable"
+        }
+      }
+    },
+    "Filter_Active_Overtime_Employees": {
+      "type": "Query",
+      "runAfter": {
+        "Get_Payroll_Summary_Rows": ["Succeeded"]
+      },
+      "inputs": {
+        "from": "@outputs('Get_Payroll_Summary_Rows')?['body/value']",
+        "where": "@gt(float(item()?['Approved OT Hours']), 0)"
+      }
+    },
+    "Select_Key_Payroll_Columns": {
+      "type": "Select",
+      "runAfter": {
+        "Filter_Active_Overtime_Employees": ["Succeeded"]
+      },
+      "inputs": {
+        "from": "@body('Filter_Active_Overtime_Employees')",
+        "select": {
+          "Employee ID": "@item()?['Employee ID']",
+          "Name": "@item()?['Full Name']",
+          "Staff Category": "@item()?['Staff Type']",
+          "Department": "@item()?['Department']",
+          "Hourly Rate (GHS)": "@item()?['Hourly Rate']",
+          "Approved Hours": "@item()?['Approved OT Hours']",
+          "Gross Overtime Pay": "@item()?['Total OT Pay (Gross GHS)']",
+          "Net Overtime Pay": "@item()?['Net OT Pay (GHS)']"
+        }
+      }
+    },
+    "Create_HTML_Payroll_Table": {
+      "type": "Table",
+      "runAfter": {
+        "Select_Key_Payroll_Columns": ["Succeeded"]
+      },
+      "inputs": {
+        "from": "@body('Select_Key_Payroll_Columns')",
+        "format": "HTML"
+      }
+    },
+    "Send_Monthly_Report_Email": {
+      "type": "OpenApiConnection",
+      "runAfter": {
+        "Create_HTML_Payroll_Table": ["Succeeded"]
+      },
+      "inputs": {
+        "host": {
+          "connectionName": "shared_sendmail",
+          "operationId": "SendEmailV2",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sendmail"
+        },
+        "parameters": {
+          "emailMessage": {
+            "To": "hr@ghacem.com; payroll@ghacem.com; management@ghacem.com",
+            "Subject": "Ghacem Overtime Reconciliations & Payroll Report (Previous Month)",
+            "Body": "@concat('Dear Team,<br/><br/>Please find below the consolidated Overtime Payroll Summary report for the previous monthly period, automatically generated from the centralized Ghacem Overtime Database.<br/><br/><h3>Active Employee Overtime Summary</h3>', outputs('Create_HTML_Payroll_Table')?['body'], '<br/><br/><b>Note:</b> This report contains only employees with approved overtime hours during the period. For full details including tax breakdowns, withholding deductions, and historical trend charts, please access the database directly using the link below.<br/><br/><a href=\"https://ghacem-my.sharepoint.com/:x:/g/personal/admin_ghacem_com/Ghacem_Overtime_Online_Database\">Open Centralized Overtime Online Database</a><br/><br/>Best Regards,<br/>M365 Overtime Automated Workflow Service')"
+          }
+        }
+      }
+    }
+  }
+}
