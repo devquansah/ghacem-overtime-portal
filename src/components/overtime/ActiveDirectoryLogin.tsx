@@ -41,7 +41,7 @@ export const ActiveDirectoryLogin: React.FC<ActiveDirectoryLoginProps> = ({
     if (email.trim().toLowerCase() === expectedEmail && password === expectedPassword) {
       const sess: UserSession = { email: expectedEmail, name: expectedName, role };
       const storageKey = role === "Supervisor" ? "overtime_supervisor_session" : "overtime_hr_session";
-      localStorage.setItem(storageKey, JSON.stringify(sess));
+      sessionStorage.setItem(storageKey, JSON.stringify(sess));
       onLoginSuccess(sess);
     } else {
       setError(`We couldn't find an account matching that email or password. Please use ${expectedEmail} and password ${expectedPassword}`);

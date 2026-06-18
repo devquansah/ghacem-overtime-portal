@@ -21,7 +21,7 @@ function SupervisorPortalComponent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("overtime_supervisor_session");
+    const stored = sessionStorage.getItem("overtime_supervisor_session");
     if (stored) {
       setSession(JSON.parse(stored));
     }
@@ -29,7 +29,7 @@ function SupervisorPortalComponent() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("overtime_supervisor_session");
+    sessionStorage.removeItem("overtime_supervisor_session");
     setSession(null);
   };
 

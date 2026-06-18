@@ -24,7 +24,7 @@ function HRAccountsPortalComponent() {
   const [hrSubTab, setHrSubTab] = useState<"audit" | "payroll" | "kpis">("audit");
 
   useEffect(() => {
-    const stored = localStorage.getItem("overtime_hr_session");
+    const stored = sessionStorage.getItem("overtime_hr_session");
     if (stored) {
       setSession(JSON.parse(stored));
     }
@@ -32,7 +32,7 @@ function HRAccountsPortalComponent() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("overtime_hr_session");
+    sessionStorage.removeItem("overtime_hr_session");
     setSession(null);
   };
 
