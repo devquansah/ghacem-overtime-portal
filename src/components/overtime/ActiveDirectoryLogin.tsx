@@ -61,7 +61,6 @@ export const ActiveDirectoryLogin: React.FC<ActiveDirectoryLoginProps> = ({
       </div>
 
       <h2 className="text-2xl font-semibold text-zinc-900 tracking-tight">Sign in</h2>
-      <p className="text-xs text-zinc-500 mt-1">Use your company account and Windows Active Directory credentials to access the {role === "Supervisor" ? "Supervisor approvals queue" : "HR & Accounts ledger"}.</p>
 
       <form onSubmit={handleSubmit} className="space-y-4 mt-6">
         {error && (
