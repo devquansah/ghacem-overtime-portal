@@ -198,9 +198,6 @@ export const PayrollDashboard: React.FC = () => {
           <h2 className="text-2xl font-bold flex items-center gap-2">
             Payroll Overtime summary ledger
           </h2>
-          <p className="text-xs text-yellow-400 mt-1 uppercase tracking-wider font-extrabold">
-            Reconciliation worksheet for June 2026: Ghacem operations payroll summary.
-          </p>
         </div>
 
         {/* TOOLBAR CONTROLS - Hidden in Print */}

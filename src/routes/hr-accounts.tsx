@@ -56,7 +56,7 @@ function HRAccountsPortalComponent() {
           <div className="space-y-6">
             
             {/* HR Sub-Navigation Bar */}
-            <div className="bg-white border border-zinc-200 py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-between flex-wrap gap-4 text-left">
+            <div className="bg-white border border-zinc-200 py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-between flex-wrap gap-4 text-left no-print">
               <div className="flex gap-2">
                 <button
                   onClick={() => setHrSubTab("audit")}
