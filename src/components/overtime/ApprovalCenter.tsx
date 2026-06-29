@@ -82,7 +82,7 @@ export const ApprovalCenter: React.FC = () => {
                 <div className="text-xs font-bold text-zinc-700">{r.employeeName}</div>
                 <div className="text-[10px] text-zinc-500 flex justify-between mt-1.5 font-semibold">
                   <span>{r.department}</span>
-                  <span className="text-yellow-600">{r.totalHours} hrs</span>
+                  <span className="text-yellow-600">{r.totalActHours} hrs (Act)</span>
                 </div>
               </div>
             ))}
@@ -121,27 +121,39 @@ export const ApprovalCenter: React.FC = () => {
                   <table className="w-full text-xs">
                     <thead className="bg-zinc-50 border-b text-[10px] font-extrabold text-zinc-500 uppercase">
                       <tr>
-                        <th className="p-2 border-r">Start</th>
-                        <th className="p-2 border-r">End</th>
-                        <th className="p-2 border-r">Times</th>
-                        <th className="p-2 text-right">Hours</th>
+                        <th className="p-2 border-r" rowSpan={2}>Date</th>
+                        <th className="p-2 border-r" rowSpan={2}>Type</th>
+                        <th className="p-2 border-r text-center" colSpan={3}>Estimate</th>
+                        <th className="p-2 text-center" colSpan={3}>Actual</th>
+                      </tr>
+                      <tr className="bg-zinc-100/50 border-b text-[8px] font-bold text-zinc-400 uppercase">
+                        <th className="p-1 border-r text-center">Start</th>
+                        <th className="p-1 border-r text-center">End</th>
+                        <th className="p-1 border-r text-right">Hours</th>
+                        <th className="p-1 border-r text-center">Start</th>
+                        <th className="p-1 border-r text-center">End</th>
+                        <th className="p-1 text-right">Hours</th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentReq.rows.map((row, idx) => (
                         <tr key={idx} className="border-b last:border-b-0">
-                          <td className="p-2 border-r font-medium">{row.startDate}</td>
-                          <td className="p-2 border-r font-medium">{row.endDate}</td>
-                          <td className="p-2 border-r font-semibold text-zinc-600">{row.startTime} - {row.endTime}</td>
-                          <td className="p-2 text-right font-bold bg-zinc-50/50">{row.hours.toFixed(2)}</td>
+                          <td className="p-2 border-r font-medium">{row.date}</td>
+                          <td className="p-2 border-r font-semibold text-zinc-600">{row.overtimeType}</td>
+                          <td className="p-1.5 border-r text-center text-zinc-500">{row.estStartTime}</td>
+                          <td className="p-1.5 border-r text-center text-zinc-500">{row.estEndTime}</td>
+                          <td className="p-1.5 border-r text-right font-bold bg-zinc-50/20">{row.estHours.toFixed(2)}</td>
+                          <td className="p-1.5 border-r text-center text-zinc-600 font-medium">{row.actStartTime}</td>
+                          <td className="p-1.5 border-r text-center text-zinc-600 font-medium">{row.actEndTime}</td>
+                          <td className="p-1.5 text-right font-extrabold bg-zinc-50/40">{row.actHours.toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
                 <div className="flex justify-between items-center bg-zinc-50 p-2.5 rounded border border-zinc-200 text-xs">
-                  <span className="font-bold text-zinc-500 uppercase tracking-wider text-[10px]">Overtime Type: <span className="text-zinc-700 font-extrabold">{currentReq.overtimeType}</span></span>
-                  <span className="font-extrabold text-zinc-900">Total anticipated hours: {currentReq.totalHours.toFixed(2)}</span>
+                  <span className="font-bold text-zinc-500 uppercase tracking-wider text-[10px]">Total Est. Hours: <span className="text-zinc-900 font-extrabold">{currentReq.totalEstHours.toFixed(2)}</span></span>
+                  <span className="font-bold text-zinc-500 uppercase tracking-wider text-[10px]">Total Act. Hours: <span className="text-zinc-900 font-extrabold">{currentReq.totalActHours.toFixed(2)}</span></span>
                 </div>
               </div>
 

@@ -11,11 +11,14 @@ export interface Employee {
 }
 
 export interface OvertimeRow {
-  startDate: string;
-  endDate: string;
-  startTime: string;
-  endTime: string;
-  hours: number;
+  date: string;
+  overtimeType: "Weekday" | "Daily" | "Public holiday" | "Emergency";
+  estStartTime: string;
+  estEndTime: string;
+  estHours: number;
+  actStartTime: string;
+  actEndTime: string;
+  actHours: number;
 }
 
 export interface OvertimeRequest {
@@ -28,9 +31,9 @@ export interface OvertimeRequest {
   supervisor: string;
   hourlyRate: number;
   category: "Senior Staff" | "Junior Staff" | "Contract Workers";
-  overtimeType: "Weekday" | "Weekend" | "Holiday" | "Emergency";
   rows: OvertimeRow[];
-  totalHours: number;
+  totalEstHours: number;
+  totalActHours: number;
   explanation: string;
   status: "Pending" | "Approved" | "Rejected" | "Paid";
   approvedBy: string;
@@ -49,7 +52,7 @@ interface OvertimeContextType {
   submitRequest: (request: Omit<OvertimeRequest, "id" | "status" | "approvedBy" | "dateApproved" | "comments">) => string;
   approveRequest: (id: string, approverName: string, comments: string) => void;
   rejectRequest: (id: string, approverName: string, comments: string) => void;
-  updateRequestHours: (id: string, rows: OvertimeRow[], totalHours: number) => void;
+  updateRequestHours: (id: string, rows: OvertimeRow[], totalEstHours: number, totalActHours: number) => void;
   markRequestAsPaid: (id: string) => void;
   importRequests: (imported: OvertimeRequest[]) => void;
   resetAllData: () => void;
@@ -78,8 +81,8 @@ const INITIAL_EMPLOYEES: Employee[] = [
 
 const MULTIPLIERS = {
   Weekday: 1.5,
-  Weekend: 2.0,
-  Holiday: 2.5,
+  Daily: 2.0,
+  "Public holiday": 2.5,
   Emergency: 3.0
 };
 
@@ -98,6 +101,9 @@ export const calculateRowHours = (startTime: string, endTime: string): number =>
     if (diffMins < 0) {
       // Crossed midnight boundary
       diffMins += 24 * 60;
+    } else if (diffMins === 0) {
+      // Equal start and end times represent exactly 24 hours
+      diffMins = 24 * 60;
     }
     return Math.round((diffMins / 60) * 100) / 100;
   } catch (e) {
@@ -118,65 +124,65 @@ export const OvertimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         {
           id: "OT-2026-00001", dateCompleted: "2026-04-02", employeeId: "EMP001", employeeName: "Kwame Mensah",
           jobTitle: "Shift Supervisor", department: "Operations", supervisor: "Sarah Hanson", hourlyRate: 45.00,
-          category: "Senior Staff", overtimeType: "Weekday", totalHours: 4.0, explanation: "Extended shift for kiln repair",
+          category: "Senior Staff", totalEstHours: 4.0, totalActHours: 4.0, explanation: "Extended shift for kiln repair",
           status: "Approved", approvedBy: "Sarah Hanson", dateApproved: "2026-04-03", comments: "Valid kiln maintenance cover.",
-          signature: "Kwame Mensah", rows: [{ startDate: "2026-04-02", endDate: "2026-04-02", startTime: "18:00", endTime: "22:00", hours: 4.0 }]
+          signature: "Kwame Mensah", rows: [{ date: "2026-04-02", overtimeType: "Weekday", estStartTime: "18:00", estEndTime: "22:00", estHours: 4.0, actStartTime: "18:00", actEndTime: "22:00", actHours: 4.0 }]
         },
         {
           id: "OT-2026-00002", dateCompleted: "2026-04-03", employeeId: "EMP002", employeeName: "Abena Osei",
           jobTitle: "Control Operator", department: "Operations", supervisor: "Sarah Hanson", hourlyRate: 50.00,
-          category: "Senior Staff", overtimeType: "Weekday", totalHours: 3.0, explanation: "Late billing reconciliation",
+          category: "Senior Staff", totalEstHours: 3.0, totalActHours: 3.0, explanation: "Late billing reconciliation",
           status: "Approved", approvedBy: "Sarah Hanson", dateApproved: "2026-04-04", comments: "Approved reconciliation work.",
-          signature: "Abena Osei", rows: [{ startDate: "2026-04-03", endDate: "2026-04-03", startTime: "17:00", endTime: "20:00", hours: 3.0 }]
+          signature: "Abena Osei", rows: [{ date: "2026-04-03", overtimeType: "Weekday", estStartTime: "17:00", estEndTime: "20:00", estHours: 3.0, actStartTime: "17:00", actEndTime: "20:00", actHours: 3.0 }]
         },
         {
           id: "OT-2026-00003", dateCompleted: "2026-04-04", employeeId: "CON001", employeeName: "Emmanuel Boateng",
           jobTitle: "Packing Helper", department: "Operations", supervisor: "Kwame Mensah", hourlyRate: 35.00,
-          category: "Contract Workers", overtimeType: "Weekend", totalHours: 6.0, explanation: "Silo clearing support",
+          category: "Contract Workers", totalEstHours: 6.0, totalActHours: 6.0, explanation: "Silo clearing support",
           status: "Approved", approvedBy: "Kwame Mensah", dateApproved: "2026-04-04", comments: "Completed weekend packing duty.",
-          signature: "Emmanuel Boateng", rows: [{ startDate: "2026-04-04", endDate: "2026-04-04", startTime: "08:00", endTime: "14:00", hours: 6.0 }]
+          signature: "Emmanuel Boateng", rows: [{ date: "2026-04-04", overtimeType: "Daily", estStartTime: "08:00", estEndTime: "14:00", estHours: 6.0, actStartTime: "08:00", actEndTime: "14:00", actHours: 6.0 }]
         },
         {
           id: "OT-2026-00004", dateCompleted: "2026-04-05", employeeId: "CON002", employeeName: "Kofi Antwi",
           jobTitle: "Driver", department: "Operations", supervisor: "Kwame Mensah", hourlyRate: 32.00,
-          category: "Contract Workers", overtimeType: "Weekend", totalHours: 8.0, explanation: "Emergency raw material delivery",
+          category: "Contract Workers", totalEstHours: 8.0, totalActHours: 8.0, explanation: "Emergency raw material delivery",
           status: "Approved", approvedBy: "Kwame Mensah", dateApproved: "2026-04-05", comments: "Urgent dispatch completed.",
-          signature: "Kofi Antwi", rows: [{ startDate: "2026-04-05", endDate: "2026-04-05", startTime: "08:00", endTime: "16:00", hours: 8.0 }]
+          signature: "Kofi Antwi", rows: [{ date: "2026-04-05", overtimeType: "Daily", estStartTime: "08:00", estEndTime: "16:00", estHours: 8.0, actStartTime: "08:00", actEndTime: "16:00", actHours: 8.0 }]
         },
         {
           id: "OT-2026-00005", dateCompleted: "2026-04-07", employeeId: "EMP004", employeeName: "Ekow Gyan",
           jobTitle: "Senior Technician", department: "Maintenance", supervisor: "Albert Taylor", hourlyRate: 48.00,
-          category: "Senior Staff", overtimeType: "Emergency", totalHours: 5.0, explanation: "Electrical fault in clinker cooler",
+          category: "Senior Staff", totalEstHours: 5.0, totalActHours: 5.0, explanation: "Electrical fault in clinker cooler",
           status: "Approved", approvedBy: "Albert Taylor", dateApproved: "2026-04-08", comments: "Plant safety restoration.",
-          signature: "Ekow Gyan", rows: [{ startDate: "2026-04-07", endDate: "2026-04-08", startTime: "20:00", endTime: "01:00", hours: 5.0 }]
+          signature: "Ekow Gyan", rows: [{ date: "2026-04-07", overtimeType: "Emergency", estStartTime: "20:00", estEndTime: "01:00", estHours: 5.0, actStartTime: "20:00", actEndTime: "01:00", actHours: 5.0 }]
         },
         {
           id: "OT-2026-04-010", dateCompleted: "2026-04-15", employeeId: "EMP008", employeeName: "Kwaku Mensah",
           jobTitle: "Quarry Operator", department: "Operations", supervisor: "Kofi Mensah", hourlyRate: 38.00,
-          category: "Junior Staff", overtimeType: "Weekday", totalHours: 4.0, explanation: "Unapproved overtime extension",
+          category: "Junior Staff", totalEstHours: 4.0, totalActHours: 4.0, explanation: "Unapproved overtime extension",
           status: "Rejected", approvedBy: "Kofi Mensah", dateApproved: "2026-04-16", comments: "Was not pre-authorized.",
-          signature: "Kwaku Mensah", rows: [{ startDate: "2026-04-15", endDate: "2026-04-15", startTime: "17:00", endTime: "21:00", hours: 4.0 }]
+          signature: "Kwaku Mensah", rows: [{ date: "2026-04-15", overtimeType: "Weekday", estStartTime: "17:00", estEndTime: "21:00", estHours: 4.0, actStartTime: "17:00", actEndTime: "21:00", actHours: 4.0 }]
         },
         {
           id: "OT-2026-00023", dateCompleted: "2026-05-27", employeeId: "EMP008", employeeName: "Kwaku Mensah",
           jobTitle: "Quarry Operator", department: "Operations", supervisor: "Kofi Mensah", hourlyRate: 38.00,
-          category: "Junior Staff", overtimeType: "Weekday", totalHours: 5.0, explanation: "Extra kiln support",
+          category: "Junior Staff", totalEstHours: 5.0, totalActHours: 5.0, explanation: "Extra kiln support",
           status: "Pending", approvedBy: "", dateApproved: "", comments: "",
-          signature: "Kwaku Mensah", rows: [{ startDate: "2026-05-27", endDate: "2026-05-27", startTime: "18:00", endTime: "23:00", hours: 5.0 }]
+          signature: "Kwaku Mensah", rows: [{ date: "2026-05-27", overtimeType: "Weekday", estStartTime: "18:00", estEndTime: "23:00", estHours: 5.0, actStartTime: "18:00", actEndTime: "23:00", actHours: 5.0 }]
         },
         {
           id: "OT-2026-00038", dateCompleted: "2026-06-14", employeeId: "EMP001", employeeName: "Kwame Mensah",
           jobTitle: "Shift Supervisor", department: "Operations", supervisor: "Kofi Mensah", hourlyRate: 45.00,
-          category: "Senior Staff", overtimeType: "Weekend", totalHours: 8.0, explanation: "Kiln monitoring weekend shift",
+          category: "Senior Staff", totalEstHours: 8.0, totalActHours: 8.0, explanation: "Kiln monitoring weekend shift",
           status: "Pending", approvedBy: "", dateApproved: "", comments: "",
-          signature: "Kwame Mensah", rows: [{ startDate: "2026-06-14", endDate: "2026-06-14", startTime: "08:00", endTime: "16:00", hours: 8.0 }]
+          signature: "Kwame Mensah", rows: [{ date: "2026-06-14", overtimeType: "Daily", estStartTime: "08:00", estEndTime: "16:00", estHours: 8.0, actStartTime: "08:00", actEndTime: "16:00", actHours: 8.0 }]
         },
         {
           id: "OT-2026-00040", dateCompleted: "2026-06-15", employeeId: "CON001", employeeName: "Emmanuel Boateng",
           jobTitle: "Packing Helper", department: "Operations", supervisor: "Kwame Mensah", hourlyRate: 35.00,
-          category: "Contract Workers", overtimeType: "Weekday", totalHours: 4.0, explanation: "Late cleaning after shift close",
+          category: "Contract Workers", totalEstHours: 4.0, totalActHours: 4.0, explanation: "Late cleaning after shift close",
           status: "Pending", approvedBy: "", dateApproved: "", comments: "",
-          signature: "Emmanuel Boateng", rows: [{ startDate: "2026-06-15", endDate: "2026-06-15", startTime: "18:00", endTime: "22:00", hours: 4.0 }]
+          signature: "Emmanuel Boateng", rows: [{ date: "2026-06-15", overtimeType: "Weekday", estStartTime: "18:00", estEndTime: "22:00", estHours: 4.0, actStartTime: "18:00", actEndTime: "22:00", actHours: 4.0 }]
         }
       ];
       localStorage.setItem("ghacem_overtime_requests", JSON.stringify(mockDb));
@@ -264,13 +270,14 @@ export const OvertimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem("ghacem_overtime_requests", JSON.stringify(updated));
   };
 
-  const updateRequestHours = (id: string, updatedRows: OvertimeRow[], newTotal: number) => {
+  const updateRequestHours = (id: string, updatedRows: OvertimeRow[], totalEstHours: number, totalActHours: number) => {
     const updated = requests.map(r => {
       if (r.id === id) {
         return {
           ...r,
           rows: updatedRows,
-          totalHours: newTotal
+          totalEstHours,
+          totalActHours
         };
       }
       return r;

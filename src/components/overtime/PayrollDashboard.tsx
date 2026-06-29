@@ -17,13 +17,17 @@ export const PayrollDashboard: React.FC = () => {
         r.dateCompleted.startsWith("2026-06")
       );
 
-      // Sum hours and pay
-      const totalHours = approvedReqs.reduce((sum, r) => sum + r.totalHours, 0);
-      
-      const totalPay = approvedReqs.reduce((sum, r) => {
-        const mult = multipliers[r.overtimeType] || 1.0;
-        return sum + (r.totalHours * mult * emp.hourlyRate);
-      }, 0);
+      // Sum hours and pay based on row-level actual hours and multipliers
+      let totalHours = 0;
+      let totalPay = 0;
+
+      approvedReqs.forEach(r => {
+        r.rows.forEach(row => {
+          totalHours += row.actHours;
+          const mult = multipliers[row.overtimeType] || 1.0;
+          totalPay += row.actHours * mult * emp.hourlyRate;
+        });
+      });
 
       return {
         id: emp.id,

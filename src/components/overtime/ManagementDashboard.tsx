@@ -19,17 +19,19 @@ export const ManagementDashboard: React.FC = () => {
 
     requests.forEach(r => {
       if (r.status === "Approved" || r.status === "Paid") {
-        hours += r.totalHours;
-        
-        const mult = multipliers[r.overtimeType] || 1.0;
-        const recordCost = r.totalHours * mult * r.hourlyRate;
-        cost += recordCost;
+        r.rows.forEach(row => {
+          hours += row.actHours;
+          
+          const mult = multipliers[row.overtimeType] || 1.0;
+          const recordCost = row.actHours * mult * r.hourlyRate;
+          cost += recordCost;
 
-        if (r.category === "Senior Staff" || r.category === "Junior Staff") {
-          staffHours += r.totalHours;
-        } else {
-          contractHours += r.totalHours;
-        }
+          if (r.category === "Senior Staff" || r.category === "Junior Staff") {
+            staffHours += row.actHours;
+          } else {
+            contractHours += row.actHours;
+          }
+        });
       } else if (r.status === "Pending") {
         pending++;
       }
@@ -45,11 +47,16 @@ export const ManagementDashboard: React.FC = () => {
 
     return months.map((m, idx) => {
       const approved = requests.filter(r => (r.status === "Approved" || r.status === "Paid") && r.dateCompleted.includes(`-` + m + `-`));
-      const hours = approved.reduce((sum, r) => sum + r.totalHours, 0);
-      const cost = approved.reduce((sum, r) => {
-        const mult = multipliers[r.overtimeType] || 1.0;
-        return sum + (r.totalHours * mult * r.hourlyRate);
-      }, 0);
+      let hours = 0;
+      let cost = 0;
+
+      approved.forEach(r => {
+        r.rows.forEach(row => {
+          hours += row.actHours;
+          const mult = multipliers[row.overtimeType] || 1.0;
+          cost += row.actHours * mult * r.hourlyRate;
+        });
+      });
 
       return {
         month: monthNames[idx],
@@ -64,10 +71,14 @@ export const ManagementDashboard: React.FC = () => {
     const depts = ["Operations", "Logistics", "Maintenance", "HR", "Finance", "Safety", "Sales"];
     return depts.map(d => {
       const approved = requests.filter(r => (r.status === "Approved" || r.status === "Paid") && r.department === d);
-      const cost = approved.reduce((sum, r) => {
-        const mult = multipliers[r.overtimeType] || 1.0;
-        return sum + (r.totalHours * mult * r.hourlyRate);
-      }, 0);
+      let cost = 0;
+
+      approved.forEach(r => {
+        r.rows.forEach(row => {
+          const mult = multipliers[row.overtimeType] || 1.0;
+          cost += row.actHours * mult * r.hourlyRate;
+        });
+      });
 
       return {
         department: d,
@@ -82,11 +93,16 @@ export const ManagementDashboard: React.FC = () => {
     
     return categories.map(c => {
       const approved = requests.filter(r => (r.status === "Approved" || r.status === "Paid") && r.category === c);
-      const hours = approved.reduce((sum, r) => sum + r.totalHours, 0);
-      const cost = approved.reduce((sum, r) => {
-        const mult = multipliers[r.overtimeType] || 1.0;
-        return sum + (r.totalHours * mult * r.hourlyRate);
-      }, 0);
+      let hours = 0;
+      let cost = 0;
+
+      approved.forEach(r => {
+        r.rows.forEach(row => {
+          hours += row.actHours;
+          const mult = multipliers[row.overtimeType] || 1.0;
+          cost += row.actHours * mult * r.hourlyRate;
+        });
+      });
 
       return {
         type: c,
@@ -100,10 +116,14 @@ export const ManagementDashboard: React.FC = () => {
   const employeeData = useMemo(() => {
     return employees.map(emp => {
       const approved = requests.filter(r => (r.status === "Approved" || r.status === "Paid") && r.employeeId === emp.id);
-      const cost = approved.reduce((sum, r) => {
-        const mult = multipliers[r.overtimeType] || 1.0;
-        return sum + (r.totalHours * mult * emp.hourlyRate);
-      }, 0);
+      let cost = 0;
+
+      approved.forEach(r => {
+        r.rows.forEach(row => {
+          const mult = multipliers[row.overtimeType] || 1.0;
+          cost += row.actHours * mult * emp.hourlyRate;
+        });
+      });
 
       return {
         name: emp.name,

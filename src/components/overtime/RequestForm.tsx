@@ -14,19 +14,29 @@ export const RequestForm: React.FC = () => {
   const [supervisor, setSupervisor] = useState("");
   const [category, setCategory] = useState<"Senior Staff" | "Junior Staff" | "Contract Workers">("Senior Staff");
 
-  // Overtime general fields
-  const [overtimeType, setOvertimeType] = useState<"Weekday" | "Weekend" | "Holiday" | "Emergency">("Weekday");
   const [dateCompleted, setDateCompleted] = useState(new Date().toISOString().split("T")[0]);
   
   // Table Rows
   const [rows, setRows] = useState<Array<{
-    startDate: string;
-    endDate: string;
-    startTime: string;
-    endTime: string;
-    hours: number;
+    date: string;
+    overtimeType: "Weekday" | "Daily" | "Public holiday" | "Emergency";
+    estStartTime: string;
+    estEndTime: string;
+    estHours: number;
+    actStartTime: string;
+    actEndTime: string;
+    actHours: number;
   }>>([
-    { startDate: "", endDate: "", startTime: "", endTime: "", hours: 0 }
+    {
+      date: "",
+      overtimeType: "Weekday",
+      estStartTime: "",
+      estEndTime: "",
+      estHours: 0,
+      actStartTime: "",
+      actEndTime: "",
+      actHours: 0
+    }
   ]);
 
   // Explanation, signature declaration
@@ -40,16 +50,29 @@ export const RequestForm: React.FC = () => {
     newRows[index] = { ...newRows[index], [field]: value };
     
     // Recalculate hours if times change
-    if (field === "startTime" || field === "endTime") {
+    if (field === "estStartTime" || field === "estEndTime") {
       const row = newRows[index];
-      row.hours = calculateRowHours(row.startTime, row.endTime);
+      row.estHours = calculateRowHours(row.estStartTime, row.estEndTime);
+    }
+    if (field === "actStartTime" || field === "actEndTime") {
+      const row = newRows[index];
+      row.actHours = calculateRowHours(row.actStartTime, row.actEndTime);
     }
     setRows(newRows);
   };
 
   // Add row
   const addRow = () => {
-    setRows([...rows, { startDate: "", endDate: "", startTime: "", endTime: "", hours: 0 }]);
+    setRows([...rows, {
+      date: "",
+      overtimeType: "Weekday",
+      estStartTime: "",
+      estEndTime: "",
+      estHours: 0,
+      actStartTime: "",
+      actEndTime: "",
+      actHours: 0
+    }]);
   };
 
   // Delete row
@@ -58,8 +81,9 @@ export const RequestForm: React.FC = () => {
     setRows(rows.filter((_, idx) => idx !== index));
   };
 
-  // Anticipated Overtime Hours (Sum of rows)
-  const anticipatedHours = rows.reduce((sum, r) => sum + r.hours, 0);
+  // Total Estimated and Actual Hours
+  const totalEstHours = rows.reduce((sum, r) => sum + r.estHours, 0);
+  const totalActHours = rows.reduce((sum, r) => sum + r.actHours, 0);
 
   // Submit Handler
   const handleSubmit = (e: React.FormEvent) => {
@@ -99,9 +123,11 @@ export const RequestForm: React.FC = () => {
     }
     
     // Check if any row is empty or has zero hours
-    const invalidRow = rows.some(r => !r.startDate || !r.endDate || !r.startTime || !r.endTime || r.hours <= 0);
+    const invalidRow = rows.some(
+      r => !r.date || !r.overtimeType || !r.estStartTime || !r.estEndTime || r.estHours <= 0 || !r.actStartTime || !r.actEndTime || r.actHours <= 0
+    );
     if (invalidRow) {
-      toast.error("Please fill in all row inputs with valid times.");
+      toast.error("Please fill in all row inputs with valid times (e.g. Estimate & Actual hours must be greater than 0).");
       return;
     }
 
@@ -120,9 +146,9 @@ export const RequestForm: React.FC = () => {
       supervisor: supervisor.trim(),
       hourlyRate,
       category,
-      overtimeType,
       rows,
-      totalHours: anticipatedHours,
+      totalEstHours,
+      totalActHours,
       explanation,
       signature
     };
@@ -137,7 +163,16 @@ export const RequestForm: React.FC = () => {
     setDepartment("");
     setSupervisor("");
     setCategory("Senior Staff");
-    setRows([{ startDate: "", endDate: "", startTime: "", endTime: "", hours: 0 }]);
+    setRows([{
+      date: "",
+      overtimeType: "Weekday",
+      estStartTime: "",
+      estEndTime: "",
+      estHours: 0,
+      actStartTime: "",
+      actEndTime: "",
+      actHours: 0
+    }]);
     setExplanation("");
     setSignature("");
     setDeclaration(false);
@@ -228,22 +263,9 @@ export const RequestForm: React.FC = () => {
           </div>
         </div>
 
-        {/* OVERTIME TYPE / CATEGORY */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4 text-left">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-600">Overtime Type (Multiplier Rate)</label>
-            <select
-              value={overtimeType}
-              onChange={(e) => setOvertimeType(e.target.value as any)}
-              className="w-full h-10 border border-zinc-300 rounded px-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-            >
-              <option value="Weekday">Weekday (1.5x)</option>
-              <option value="Weekend">Weekend (2.0x)</option>
-              <option value="Holiday">Holiday (2.5x)</option>
-              <option value="Emergency">Emergency (3.0x)</option>
-            </select>
-          </div>
-          <div className="space-y-1.5">
+        {/* WORKER CATEGORY */}
+        <div className="grid grid-cols-1 gap-6 border-t pt-4 text-left">
+          <div className="space-y-1.5 max-w-md">
             <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Worker Category</label>
             <select
               value={category}
@@ -277,12 +299,19 @@ export const RequestForm: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-zinc-100 border-b border-zinc-200 text-[10px] font-extrabold text-zinc-600 uppercase tracking-wider">
-                  <th className="py-2.5 px-3 border-r w-[24%]">Start Date</th>
-                  <th className="py-2.5 px-3 border-r w-[24%]">End Date</th>
-                  <th className="py-2.5 px-3 border-r w-[18%]">Start Time</th>
-                  <th className="py-2.5 px-3 border-r w-[18%]">End Time</th>
-                  <th className="py-2.5 px-3 border-r w-[12%] text-right">Hours</th>
-                  <th className="py-2.5 px-3 w-[4%] text-center">Action</th>
+                  <th className="py-2.5 px-3 border-r w-[15%]" rowSpan={2}>Date</th>
+                  <th className="py-2.5 px-3 border-r w-[18%]" rowSpan={2}>Overtime Type</th>
+                  <th className="py-2 px-3 border-r text-center" colSpan={3}>Estimate</th>
+                  <th className="py-2 px-3 border-r text-center" colSpan={3}>Actual</th>
+                  <th className="py-2.5 px-3 w-[5%] text-center" rowSpan={2}>Action</th>
+                </tr>
+                <tr className="bg-zinc-50 border-b border-zinc-200 text-[9px] font-extrabold text-zinc-500 uppercase tracking-wider">
+                  <th className="py-1 px-2 border-r text-center w-[10%]">Start</th>
+                  <th className="py-1 px-2 border-r text-center w-[10%]">End</th>
+                  <th className="py-1 px-2 border-r text-right w-[8%]">Hours</th>
+                  <th className="py-1 px-2 border-r text-center w-[10%]">Start</th>
+                  <th className="py-1 px-2 border-r text-center w-[10%]">End</th>
+                  <th className="py-1 px-2 border-r text-right w-[8%]">Hours</th>
                 </tr>
               </thead>
               <tbody>
@@ -291,26 +320,29 @@ export const RequestForm: React.FC = () => {
                     <td className="p-2 border-r">
                       <input
                         type="date"
-                        value={row.startDate}
-                        onChange={(e) => handleRowChange(idx, "startDate", e.target.value)}
+                        value={row.date}
+                        onChange={(e) => handleRowChange(idx, "date", e.target.value)}
                         className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500"
                         required
                       />
                     </td>
                     <td className="p-2 border-r">
-                      <input
-                        type="date"
-                        value={row.endDate}
-                        onChange={(e) => handleRowChange(idx, "endDate", e.target.value)}
-                        className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500"
-                        required
-                      />
+                      <select
+                        value={row.overtimeType}
+                        onChange={(e) => handleRowChange(idx, "overtimeType", e.target.value)}
+                        className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none"
+                      >
+                        <option value="Weekday">Weekday</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Public holiday">Public holiday</option>
+                        <option value="Emergency">Emergency</option>
+                      </select>
                     </td>
                     <td className="p-2 border-r">
                       <input
                         type="time"
-                        value={row.startTime}
-                        onChange={(e) => handleRowChange(idx, "startTime", e.target.value)}
+                        value={row.estStartTime}
+                        onChange={(e) => handleRowChange(idx, "estStartTime", e.target.value)}
                         className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none"
                         required
                       />
@@ -318,14 +350,35 @@ export const RequestForm: React.FC = () => {
                     <td className="p-2 border-r">
                       <input
                         type="time"
-                        value={row.endTime}
-                        onChange={(e) => handleRowChange(idx, "endTime", e.target.value)}
+                        value={row.estEndTime}
+                        onChange={(e) => handleRowChange(idx, "estEndTime", e.target.value)}
                         className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none"
                         required
                       />
                     </td>
                     <td className="p-2 border-r text-right font-extrabold text-xs text-zinc-700 bg-zinc-50/40">
-                      {row.hours.toFixed(2)}
+                      {row.estHours.toFixed(2)}
+                    </td>
+                    <td className="p-2 border-r">
+                      <input
+                        type="time"
+                        value={row.actStartTime}
+                        onChange={(e) => handleRowChange(idx, "actStartTime", e.target.value)}
+                        className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none"
+                        required
+                      />
+                    </td>
+                    <td className="p-2 border-r">
+                      <input
+                        type="time"
+                        value={row.actEndTime}
+                        onChange={(e) => handleRowChange(idx, "actEndTime", e.target.value)}
+                        className="w-full border border-zinc-200 rounded p-1 text-xs focus:outline-none"
+                        required
+                      />
+                    </td>
+                    <td className="p-2 border-r text-right font-extrabold text-xs text-zinc-700 bg-zinc-50/40">
+                      {row.actHours.toFixed(2)}
                     </td>
                     <td className="p-2 text-center">
                       <button
@@ -344,12 +397,22 @@ export const RequestForm: React.FC = () => {
           </div>
 
           {/* Anticipated Hours Display */}
-          <div className="flex justify-end items-center gap-3 pt-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">
-              Anticipated Number of Overtime Hours:
-            </span>
-            <div className="w-28 h-10 border border-zinc-200 bg-zinc-100 rounded flex items-center justify-end px-4 text-sm font-extrabold text-zinc-900 select-none shadow-inner">
-              {anticipatedHours.toFixed(2)}
+          <div className="flex justify-end items-center gap-6 pt-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">
+                Total Est. Hours:
+              </span>
+              <div className="w-24 h-9 border border-zinc-200 bg-zinc-100 rounded flex items-center justify-end px-3 text-xs font-extrabold text-zinc-900 select-none shadow-inner">
+                {totalEstHours.toFixed(2)}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">
+                Total Act. Hours:
+              </span>
+              <div className="w-24 h-9 border border-zinc-200 bg-zinc-100 rounded flex items-center justify-end px-3 text-xs font-extrabold text-zinc-900 select-none shadow-inner">
+                {totalActHours.toFixed(2)}
+              </div>
             </div>
           </div>
         </div>

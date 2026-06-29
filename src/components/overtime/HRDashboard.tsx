@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useOvertime } from "@/lib/overtime/store";
+import { useOvertime, calculateRowHours } from "@/lib/overtime/store";
 import { Search, Filter, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 
 export const HRDashboard: React.FC = () => {
@@ -18,15 +18,22 @@ export const HRDashboard: React.FC = () => {
     setEditRows(JSON.parse(JSON.stringify(request.rows))); // deep copy
   };
 
-  const handleEditHourChange = (index: number, val: number) => {
+  const handleEditRowFieldChange = (index: number, field: string, val: string) => {
     const updated = [...editRows];
-    updated[index] = { ...updated[index], hours: val };
+    updated[index] = { ...updated[index], [field]: val };
+    if (field === "estStartTime" || field === "estEndTime") {
+      updated[index].estHours = calculateRowHours(updated[index].estStartTime, updated[index].estEndTime);
+    }
+    if (field === "actStartTime" || field === "actEndTime") {
+      updated[index].actHours = calculateRowHours(updated[index].actStartTime, updated[index].actEndTime);
+    }
     setEditRows(updated);
   };
 
   const saveAdjustments = (id: string) => {
-    const newTotal = editRows.reduce((sum, r) => sum + r.hours, 0);
-    updateRequestHours(id, editRows, newTotal);
+    const totalEst = editRows.reduce((sum, r) => sum + r.estHours, 0);
+    const totalAct = editRows.reduce((sum, r) => sum + r.actHours, 0);
+    updateRequestHours(id, editRows, totalEst, totalAct);
     setEditingId(null);
   };
 
@@ -156,7 +163,7 @@ export const HRDashboard: React.FC = () => {
                       <td className="p-3 font-bold text-zinc-700">{r.employeeId}</td>
                       <td className="p-3 font-bold text-zinc-950">{r.employeeName}</td>
                       <td className="p-3 font-semibold">{r.department}</td>
-                      <td className="p-3 text-right font-extrabold text-zinc-800">{r.totalHours.toFixed(2)}</td>
+                      <td className="p-3 text-right font-extrabold text-zinc-800">{r.totalActHours.toFixed(2)}</td>
                       <td className="p-3 text-center">
                         <span className={`inline-block px-2.5 py-1 text-[10px] font-extrabold rounded-full border ${statusStyle}`}>
                           {r.status}
@@ -176,35 +183,109 @@ export const HRDashboard: React.FC = () => {
                                 <span className="text-[10px] uppercase font-extrabold text-zinc-400 tracking-wider">Overtime Rows Details</span>
                                 <div className="border border-zinc-200 rounded mt-1 bg-white overflow-hidden shadow-inner">
                                   <table className="w-full text-[11px] text-zinc-600">
-                                    <thead className="bg-zinc-50 border-b font-extrabold uppercase">
+                                    <thead className="bg-zinc-50 border-b text-[9px] font-extrabold uppercase text-zinc-500">
                                       <tr>
-                                        <th className="p-1.5 border-r">Start Date</th>
-                                        <th className="p-1.5 border-r">End Date</th>
-                                        <th className="p-1.5 border-r">Times</th>
-                                        <th className="p-1.5 text-right">Hours</th>
+                                        <th className="p-1.5 border-r" rowSpan={2}>Date</th>
+                                        <th className="p-1.5 border-r" rowSpan={2}>Type</th>
+                                        <th className="p-1 border-r text-center" colSpan={3}>Estimate</th>
+                                        <th className="p-1 text-center" colSpan={3}>Actual</th>
+                                      </tr>
+                                      <tr className="bg-zinc-100/50 border-b text-[8px] font-bold text-zinc-400 uppercase">
+                                        <th className="p-1 border-r text-center w-[12%]">Start</th>
+                                        <th className="p-1 border-r text-center w-[12%]">End</th>
+                                        <th className="p-1 border-r text-right w-[8%]">Hours</th>
+                                        <th className="p-1 border-r text-center w-[12%]">Start</th>
+                                        <th className="p-1 border-r text-center w-[12%]">End</th>
+                                        <th className="p-1 text-right w-[8%]">Hours</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {r.rows.map((row, idx) => {
                                         const isEditing = editingId === r.id;
+                                        const editRow = editRows[idx];
                                         return (
-                                          <tr key={idx} className="border-b last:border-b-0">
-                                            <td className="p-1.5 border-r">{row.startDate}</td>
-                                            <td className="p-1.5 border-r">{row.endDate}</td>
-                                            <td className="p-1.5 border-r">{row.startTime} - {row.endTime}</td>
-                                            <td className="p-1.5 text-right font-bold bg-zinc-50/30">
+                                          <tr key={idx} className="border-b last:border-b-0 text-[10px]">
+                                            <td className="p-1.5 border-r">
                                               {isEditing ? (
                                                 <input
-                                                  type="number"
-                                                  step="0.25"
-                                                  min="0"
-                                                  value={editRows[idx]?.hours ?? 0}
-                                                  onChange={(e) => handleEditHourChange(idx, parseFloat(e.target.value) || 0)}
-                                                  className="w-16 border border-zinc-300 rounded px-1.5 py-0.5 text-right text-[11px] font-bold text-zinc-800 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                                                  type="date"
+                                                  value={editRow?.date ?? ""}
+                                                  onChange={(e) => handleEditRowFieldChange(idx, "date", e.target.value)}
+                                                  className="w-full border rounded px-1 py-0.5 text-[10px]"
                                                 />
                                               ) : (
-                                                row.hours.toFixed(2)
+                                                row.date
                                               )}
+                                            </td>
+                                            <td className="p-1.5 border-r">
+                                              {isEditing ? (
+                                                <select
+                                                  value={editRow?.overtimeType ?? "Weekday"}
+                                                  onChange={(e) => handleEditRowFieldChange(idx, "overtimeType", e.target.value)}
+                                                  className="w-full border rounded p-0.5 text-[10px]"
+                                                >
+                                                  <option value="Weekday">Weekday</option>
+                                                  <option value="Daily">Daily</option>
+                                                  <option value="Public holiday">Public holiday</option>
+                                                  <option value="Emergency">Emergency</option>
+                                                </select>
+                                              ) : (
+                                                row.overtimeType
+                                              )}
+                                            </td>
+                                            <td className="p-1 border-r text-center">
+                                              {isEditing ? (
+                                                <input
+                                                  type="time"
+                                                  value={editRow?.estStartTime ?? ""}
+                                                  onChange={(e) => handleEditRowFieldChange(idx, "estStartTime", e.target.value)}
+                                                  className="border rounded p-0.5 text-[10px]"
+                                                />
+                                              ) : (
+                                                row.estStartTime
+                                              )}
+                                            </td>
+                                            <td className="p-1 border-r text-center">
+                                              {isEditing ? (
+                                                <input
+                                                  type="time"
+                                                  value={editRow?.estEndTime ?? ""}
+                                                  onChange={(e) => handleEditRowFieldChange(idx, "estEndTime", e.target.value)}
+                                                  className="border rounded p-0.5 text-[10px]"
+                                                />
+                                              ) : (
+                                                row.estEndTime
+                                              )}
+                                            </td>
+                                            <td className="p-1 border-r text-right font-bold bg-zinc-50/20">
+                                              {isEditing ? editRow?.estHours?.toFixed(2) : row.estHours?.toFixed(2)}
+                                            </td>
+                                            <td className="p-1 border-r text-center">
+                                              {isEditing ? (
+                                                <input
+                                                  type="time"
+                                                  value={editRow?.actStartTime ?? ""}
+                                                  onChange={(e) => handleEditRowFieldChange(idx, "actStartTime", e.target.value)}
+                                                  className="border rounded p-0.5 text-[10px]"
+                                                />
+                                              ) : (
+                                                row.actStartTime
+                                              )}
+                                            </td>
+                                            <td className="p-1 border-r text-center">
+                                              {isEditing ? (
+                                                <input
+                                                  type="time"
+                                                  value={editRow?.actEndTime ?? ""}
+                                                  onChange={(e) => handleEditRowFieldChange(idx, "actEndTime", e.target.value)}
+                                                  className="border rounded p-0.5 text-[10px]"
+                                                />
+                                              ) : (
+                                                row.actEndTime
+                                              )}
+                                            </td>
+                                            <td className="p-1 text-right font-extrabold bg-zinc-50/40">
+                                              {isEditing ? editRow?.actHours?.toFixed(2) : row.actHours?.toFixed(2)}
                                             </td>
                                           </tr>
                                         );
@@ -214,12 +295,21 @@ export const HRDashboard: React.FC = () => {
                                 </div>
                               </div>
                               <div className="flex justify-between items-center text-[11px] py-1 bg-white px-3 rounded border">
-                                <span className="font-semibold text-zinc-400">Overtime Type: <span className="text-zinc-600 font-extrabold">{r.overtimeType}</span></span>
-                                <span className="font-extrabold text-zinc-800">
-                                  Total Hours:{" "}
-                                  {editingId === r.id
-                                    ? editRows.reduce((sum, row) => sum + row.hours, 0).toFixed(2)
-                                    : r.totalHours.toFixed(2)}
+                                <span className="font-semibold text-zinc-500">
+                                  Total Est. Hours:{" "}
+                                  <span className="text-zinc-800 font-extrabold">
+                                    {editingId === r.id
+                                      ? editRows.reduce((sum, row) => sum + row.estHours, 0).toFixed(2)
+                                      : r.totalEstHours.toFixed(2)}
+                                  </span>
+                                </span>
+                                <span className="font-semibold text-zinc-500">
+                                  Total Act. Hours:{" "}
+                                  <span className="text-zinc-800 font-extrabold">
+                                    {editingId === r.id
+                                      ? editRows.reduce((sum, row) => sum + row.actHours, 0).toFixed(2)
+                                      : r.totalActHours.toFixed(2)}
+                                  </span>
                                 </span>
                               </div>
                             </div>
