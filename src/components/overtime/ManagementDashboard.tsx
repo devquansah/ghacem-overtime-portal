@@ -20,16 +20,16 @@ export const ManagementDashboard: React.FC = () => {
     requests.forEach(r => {
       if (r.status === "Approved" || r.status === "Paid") {
         r.rows.forEach(row => {
-          hours += row.actHours;
+          hours += row.hours;
           
           const mult = multipliers[row.overtimeType] || 1.0;
-          const recordCost = row.actHours * mult * r.hourlyRate;
+          const recordCost = row.hours * mult * r.hourlyRate;
           cost += recordCost;
 
           if (r.category === "Senior Staff" || r.category === "Junior Staff") {
-            staffHours += row.actHours;
+            staffHours += row.hours;
           } else {
-            contractHours += row.actHours;
+            contractHours += row.hours;
           }
         });
       } else if (r.status === "Pending") {
@@ -52,9 +52,9 @@ export const ManagementDashboard: React.FC = () => {
 
       approved.forEach(r => {
         r.rows.forEach(row => {
-          hours += row.actHours;
+          hours += row.hours;
           const mult = multipliers[row.overtimeType] || 1.0;
-          cost += row.actHours * mult * r.hourlyRate;
+          cost += row.hours * mult * r.hourlyRate;
         });
       });
 
@@ -76,7 +76,7 @@ export const ManagementDashboard: React.FC = () => {
       approved.forEach(r => {
         r.rows.forEach(row => {
           const mult = multipliers[row.overtimeType] || 1.0;
-          cost += row.actHours * mult * r.hourlyRate;
+          cost += row.hours * mult * r.hourlyRate;
         });
       });
 
@@ -98,9 +98,9 @@ export const ManagementDashboard: React.FC = () => {
 
       approved.forEach(r => {
         r.rows.forEach(row => {
-          hours += row.actHours;
+          hours += row.hours;
           const mult = multipliers[row.overtimeType] || 1.0;
-          cost += row.actHours * mult * r.hourlyRate;
+          cost += row.hours * mult * r.hourlyRate;
         });
       });
 
@@ -121,7 +121,7 @@ export const ManagementDashboard: React.FC = () => {
       approved.forEach(r => {
         r.rows.forEach(row => {
           const mult = multipliers[row.overtimeType] || 1.0;
-          cost += row.actHours * mult * emp.hourlyRate;
+          cost += row.hours * mult * emp.hourlyRate;
         });
       });
 

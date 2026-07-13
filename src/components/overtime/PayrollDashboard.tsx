@@ -17,15 +17,15 @@ export const PayrollDashboard: React.FC = () => {
         r.dateCompleted.startsWith("2026-06")
       );
 
-      // Sum hours and pay based on row-level actual hours and multipliers
+      // Sum hours and pay based on row-level hours and multipliers
       let totalHours = 0;
       let totalPay = 0;
 
       approvedReqs.forEach(r => {
         r.rows.forEach(row => {
-          totalHours += row.actHours;
+          totalHours += row.hours;
           const mult = multipliers[row.overtimeType] || 1.0;
-          totalPay += row.actHours * mult * emp.hourlyRate;
+          totalPay += row.hours * mult * emp.hourlyRate;
         });
       });
 
