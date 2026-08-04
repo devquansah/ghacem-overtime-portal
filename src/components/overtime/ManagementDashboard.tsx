@@ -20,16 +20,17 @@ export const ManagementDashboard: React.FC = () => {
     requests.forEach(r => {
       if (r.status === "Approved" || r.status === "Paid") {
         r.rows.forEach(row => {
-          hours += row.hours;
+          const actual = row.actHours || row.hours || 0;
+          hours += actual;
           
           const mult = multipliers[row.overtimeType] || 1.0;
-          const recordCost = row.hours * mult * r.hourlyRate;
+          const recordCost = actual * mult * r.hourlyRate;
           cost += recordCost;
 
           if (r.category === "Senior Staff" || r.category === "Junior Staff") {
-            staffHours += row.hours;
+            staffHours += actual;
           } else {
-            contractHours += row.hours;
+            contractHours += actual;
           }
         });
       } else if (r.status === "Pending") {
@@ -52,9 +53,10 @@ export const ManagementDashboard: React.FC = () => {
 
       approved.forEach(r => {
         r.rows.forEach(row => {
-          hours += row.hours;
+          const actual = row.actHours || row.hours || 0;
+          hours += actual;
           const mult = multipliers[row.overtimeType] || 1.0;
-          cost += row.hours * mult * r.hourlyRate;
+          cost += actual * mult * r.hourlyRate;
         });
       });
 
@@ -75,8 +77,9 @@ export const ManagementDashboard: React.FC = () => {
 
       approved.forEach(r => {
         r.rows.forEach(row => {
+          const actual = row.actHours || row.hours || 0;
           const mult = multipliers[row.overtimeType] || 1.0;
-          cost += row.hours * mult * r.hourlyRate;
+          cost += actual * mult * r.hourlyRate;
         });
       });
 
@@ -98,9 +101,10 @@ export const ManagementDashboard: React.FC = () => {
 
       approved.forEach(r => {
         r.rows.forEach(row => {
-          hours += row.hours;
+          const actual = row.actHours || row.hours || 0;
+          hours += actual;
           const mult = multipliers[row.overtimeType] || 1.0;
-          cost += row.hours * mult * r.hourlyRate;
+          cost += actual * mult * r.hourlyRate;
         });
       });
 
@@ -120,8 +124,9 @@ export const ManagementDashboard: React.FC = () => {
 
       approved.forEach(r => {
         r.rows.forEach(row => {
+          const actual = row.actHours || row.hours || 0;
           const mult = multipliers[row.overtimeType] || 1.0;
-          cost += row.hours * mult * emp.hourlyRate;
+          cost += actual * mult * emp.hourlyRate;
         });
       });
 

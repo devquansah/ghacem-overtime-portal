@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import { useOvertime, calculateRowHours } from "@/lib/overtime/store";
 import { Search, Filter, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { formatDecimalToHMM } from "./RequestForm";
 
-const START_TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2);
-  const m = i % 2 === 0 ? "00" : "30";
-  return `${String(h).padStart(2, "0")}:${m}`;
+const START_TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
+  const h = Math.floor(i / 4);
+  const m = (i % 4) * 15;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 });
 
-const END_TIME_OPTIONS = Array.from({ length: 97 }, (_, i) => {
-  const h = Math.floor(i / 2);
-  const m = i % 2 === 0 ? "00" : "30";
-  return `${String(h).padStart(2, "0")}:${m}`;
+const END_TIME_OPTIONS = Array.from({ length: 193 }, (_, i) => {
+  const h = Math.floor(i / 4);
+  const m = (i % 4) * 15;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 });
 
 export const HRDashboard: React.FC = () => {
@@ -30,18 +31,23 @@ export const HRDashboard: React.FC = () => {
     setEditRows(JSON.parse(JSON.stringify(request.rows))); // deep copy
   };
 
-  const handleEditRowFieldChange = (index: number, field: string, val: string) => {
+  const handleEditRowFieldChange = (index: number, field: string, val: any) => {
     const updated = [...editRows];
     updated[index] = { ...updated[index], [field]: val };
-    if (field === "startTime" || field === "endTime") {
-      updated[index].hours = calculateRowHours(updated[index].startTime, updated[index].endTime);
+    if (field === "startTime" || field === "endTime" || field === "overtimeType") {
+      updated[index].actHours = calculateRowHours(
+        updated[index].startTime,
+        updated[index].endTime,
+        updated[index].overtimeType
+      );
     }
     setEditRows(updated);
   };
  
   const saveAdjustments = (id: string) => {
-    const total = editRows.reduce((sum, r) => sum + r.hours, 0);
-    updateRequestHours(id, editRows, total);
+    const totalAct = editRows.reduce((sum, r) => sum + (r.actHours ?? r.hours ?? 0), 0);
+    const totalEst = editRows.reduce((sum, r) => sum + (Number(r.estHours) || 0), 0);
+    updateRequestHours(id, editRows, totalEst, totalAct);
     setEditingId(null);
   };
 
@@ -171,7 +177,7 @@ export const HRDashboard: React.FC = () => {
                       <td className="p-3 font-bold text-zinc-700">{r.employeeId}</td>
                       <td className="p-3 font-bold text-zinc-950">{r.employeeName}</td>
                       <td className="p-3 font-semibold">{r.department}</td>
-                      <td className="p-3 text-right font-extrabold text-zinc-800">{r.totalHours.toFixed(2)}</td>
+                      <td className="p-3 text-right font-extrabold text-zinc-800">{formatDecimalToHMM(r.totalActHours ?? r.totalHours ?? 0)}</td>
                       <td className="p-3 text-center">
                         <span className={`inline-block px-2.5 py-1 text-[10px] font-extrabold rounded-full border ${statusStyle}`}>
                           {r.status}
@@ -191,47 +197,47 @@ export const HRDashboard: React.FC = () => {
                                 <span className="text-[10px] uppercase font-extrabold text-zinc-400 tracking-wider">Overtime Rows Details</span>
                                 <div className="border border-zinc-200 rounded mt-1 bg-white overflow-hidden shadow-inner">
                                   <table className="w-full text-[11px] text-zinc-600">
-                                    <thead className="bg-zinc-50 border-b text-[9px] font-extrabold uppercase text-zinc-500">
+                                     <thead className="bg-zinc-50 border-b text-[9px] font-extrabold uppercase text-zinc-500">
                                       <tr>
+                                        <th className="p-1.5 border-r">Est. Hrs</th>
                                         <th className="p-1.5 border-r">Date</th>
-                                        <th className="p-1.5 border-r">Type</th>
-                                        <th className="p-1.5 border-r">Start Time</th>
-                                        <th className="p-1.5 border-r">End Time</th>
-                                        <th className="p-1.5 text-right">Hours</th>
+                                        <th className="p-1.5 border-r">Start</th>
+                                        <th className="p-1.5 border-r">Finish</th>
+                                        <th className="p-1.5 border-r">Weekday</th>
+                                        <th className="p-1.5 border-r">Weekend</th>
+                                        <th className="p-1.5 border-r">Pub.Hol</th>
+                                        <th className="p-1.5 border-r">R.W.Day</th>
+                                        <th className="p-1.5 border-r">Off-Duty</th>
+                                        <th className="p-1.5 border-r">P.Hol</th>
+                                        <th className="p-1.5 border-r">P.Hol OD</th>
+                                        <th className="p-1.5">Select Type</th>
                                       </tr>
-                                    </thead>
+                                     </thead>
                                     <tbody>
                                       {r.rows.map((row, idx) => {
                                         const isEditing = editingId === r.id;
                                         const editRow = editRows[idx];
                                         return (
                                           <tr key={idx} className="border-b last:border-b-0 text-[10px]">
+                                            <td className="p-1.5 border-r text-center">
+                                              {isEditing ? (
+                                                <input
+                                                  type="number" step="0.5" min="0"
+                                                  value={editRow?.estHours ?? ""}
+                                                  onChange={(e) => handleEditRowFieldChange(idx, "estHours", parseFloat(e.target.value) || 0)}
+                                                  className="w-12 border rounded px-1 py-0.5 text-[10px] text-center"
+                                                />
+                                              ) : (row.estHours ?? 0).toFixed(1)}
+                                            </td>
                                             <td className="p-1.5 border-r">
                                               {isEditing ? (
                                                 <input
-                                                  type="date"
+                                                  type="text"
                                                   value={editRow?.date ?? ""}
                                                   onChange={(e) => handleEditRowFieldChange(idx, "date", e.target.value)}
                                                   className="w-full border rounded px-1 py-0.5 text-[10px]"
                                                 />
-                                              ) : (
-                                                row.date
-                                              )}
-                                            </td>
-                                            <td className="p-1.5 border-r">
-                                              {isEditing ? (
-                                                <select
-                                                  value={editRow?.overtimeType ?? "Weekday"}
-                                                  onChange={(e) => handleEditRowFieldChange(idx, "overtimeType", e.target.value)}
-                                                  className="w-full border rounded p-0.5 text-[10px]"
-                                                >
-                                                  <option value="Weekday">Weekday</option>
-                                                  <option value="Public holiday">Public holiday</option>
-                                                  <option value="Emergency">Emergency</option>
-                                                </select>
-                                              ) : (
-                                                row.overtimeType
-                                              )}
+                                              ) : row.date}
                                             </td>
                                             <td className="p-1 border-r text-center">
                                               {isEditing ? (
@@ -245,9 +251,7 @@ export const HRDashboard: React.FC = () => {
                                                     <option key={opt} value={opt}>{opt}</option>
                                                   ))}
                                                 </select>
-                                              ) : (
-                                                row.startTime
-                                              )}
+                                              ) : row.startTime}
                                             </td>
                                             <td className="p-1 border-r text-center">
                                               {isEditing ? (
@@ -261,12 +265,33 @@ export const HRDashboard: React.FC = () => {
                                                     <option key={opt} value={opt}>{opt}</option>
                                                   ))}
                                                 </select>
-                                              ) : (
-                                                row.endTime
-                                              )}
+                                              ) : row.endTime}
                                             </td>
-                                            <td className="p-1 text-right font-extrabold bg-zinc-50/40">
-                                              {isEditing ? editRow?.hours?.toFixed(2) : row.hours?.toFixed(2)}
+                                            {/* 7 actual columns */}
+                                            {["WEEKDAY","WEEKEND","PUBLIC HOLIDAY","REST DAY","OFF DUTY","P.HOL","P.HOL OFF-DUTY"].map(typ => (
+                                              <td key={typ} className="p-1 border-r text-center font-bold">
+                                                {row.overtimeType === typ ? formatDecimalToHMM(row.actHours ?? row.hours ?? 0) : "-"}
+                                              </td>
+                                            ))}
+                                            {/* Select Type */}
+                                            <td className="p-1 border-r">
+                                              {isEditing ? (
+                                                <select
+                                                  value={editRow?.overtimeType ?? "WEEKDAY"}
+                                                  onChange={(e) => handleEditRowFieldChange(idx, "overtimeType", e.target.value)}
+                                                  className="w-full border rounded p-0.5 text-[10px]"
+                                                >
+                                                  <option value="WEEKDAY">WEEKDAY</option>
+                                                  <option value="WEEKEND">WEEKEND</option>
+                                                  <option value="PUBLIC HOLIDAY">PUBLIC HOLIDAY</option>
+                                                  <option value="REST DAY">REST DAY</option>
+                                                  <option value="OFF DUTY">OFF DUTY</option>
+                                                  <option value="P.HOL">P.HOL</option>
+                                                  <option value="P.HOL OFF-DUTY">P.HOL OFF-DUTY</option>
+                                                </select>
+                                              ) : (
+                                                <span className="text-yellow-700 font-extrabold text-[9px]">{row.overtimeType}</span>
+                                              )}
                                             </td>
                                           </tr>
                                         );
@@ -275,13 +300,21 @@ export const HRDashboard: React.FC = () => {
                                   </table>
                                 </div>
                               </div>
-                              <div className="flex justify-between items-center text-[11px] py-1 bg-white px-3 rounded border">
+                              <div className="flex justify-between items-center text-[11px] py-1 bg-white px-3 rounded border gap-4">
                                 <span className="font-semibold text-zinc-500">
-                                  Total Hours:{" "}
+                                  Est. Hours:{" "}
                                   <span className="text-zinc-800 font-extrabold">
                                     {editingId === r.id
-                                      ? editRows.reduce((sum, row) => sum + row.hours, 0).toFixed(2)
-                                      : r.totalHours.toFixed(2)}
+                                      ? editRows.reduce((sum, row) => sum + (Number(row.estHours) || 0), 0).toFixed(1)
+                                      : (r.totalEstHours ?? r.totalHours ?? 0).toFixed(1)}
+                                  </span>
+                                </span>
+                                <span className="font-semibold text-zinc-500">
+                                  Actual Hours:{" "}
+                                  <span className="text-zinc-800 font-extrabold">
+                                    {editingId === r.id
+                                      ? formatDecimalToHMM(editRows.reduce((sum, row) => sum + (row.actHours ?? row.hours ?? 0), 0))
+                                      : formatDecimalToHMM(r.totalActHours ?? r.totalHours ?? 0)}
                                   </span>
                                 </span>
                               </div>
